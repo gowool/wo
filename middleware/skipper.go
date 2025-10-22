@@ -4,15 +4,16 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/gowool/wo"
 	"github.com/gowool/wo/internal/arr"
 )
 
 var methodRe = regexp.MustCompile(`^(\S*)\s+(.*)$`)
 
-type Skipper[E event] func(e E) bool
+type Skipper[T wo.Resolver] func(e T) bool
 
-func ChainSkipper[E event](skippers ...Skipper[E]) Skipper[E] {
-	return func(e E) bool {
+func ChainSkipper[T wo.Resolver](skippers ...Skipper[T]) Skipper[T] {
+	return func(e T) bool {
 		for _, skipper := range skippers {
 			if skipper(e) {
 				return true
@@ -22,9 +23,9 @@ func ChainSkipper[E event](skippers ...Skipper[E]) Skipper[E] {
 	}
 }
 
-func PrefixPathSkipper[E event](prefixes ...string) Skipper[E] {
+func PrefixPathSkipper[T wo.Resolver](prefixes ...string) Skipper[T] {
 	prefixes = arr.Map(prefixes, strings.ToLower)
-	return func(e E) bool {
+	return func(e T) bool {
 		p := strings.ToLower(e.Request().URL.Path)
 		m := strings.ToLower(e.Request().Method)
 		for _, prefix := range prefixes {
@@ -36,9 +37,9 @@ func PrefixPathSkipper[E event](prefixes ...string) Skipper[E] {
 	}
 }
 
-func SuffixPathSkipper[E event](suffixes ...string) Skipper[E] {
+func SuffixPathSkipper[T wo.Resolver](suffixes ...string) Skipper[T] {
 	suffixes = arr.Map(suffixes, strings.ToLower)
-	return func(e E) bool {
+	return func(e T) bool {
 		p := strings.ToLower(e.Request().URL.Path)
 		m := strings.ToLower(e.Request().Method)
 		for _, suffix := range suffixes {
@@ -50,8 +51,8 @@ func SuffixPathSkipper[E event](suffixes ...string) Skipper[E] {
 	}
 }
 
-func EqualPathSkipper[E event](paths ...string) Skipper[E] {
-	return func(e E) bool {
+func EqualPathSkipper[T wo.Resolver](paths ...string) Skipper[T] {
+	return func(e T) bool {
 		for _, path := range paths {
 			if path, ok := CheckMethod(e.Request().Method, path); ok && strings.EqualFold(e.Request().URL.Path, path) {
 				return true

@@ -20,10 +20,10 @@ func (c *BodyLimitConfig) SetDefaults() {
 	}
 }
 
-func BodyLimit[E event](cfg BodyLimitConfig, skippers ...Skipper[E]) func(E) error {
-	skip := ChainSkipper[E](skippers...)
+func BodyLimit[T wo.Resolver](cfg BodyLimitConfig, skippers ...Skipper[T]) func(T) error {
+	skip := ChainSkipper[T](skippers...)
 
-	return func(e E) error {
+	return func(e T) error {
 		if skip(e) || cfg.Limit <= 0 {
 			return e.Next()
 		}

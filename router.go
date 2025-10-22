@@ -16,13 +16,6 @@ type (
 	ctxErrorKey struct{}
 )
 
-func WrapStdHandler[T Resolver](h http.Handler) func(T) error {
-	return func(e T) error {
-		h.ServeHTTP(e.Response(), e.Request())
-		return nil
-	}
-}
-
 type Resolver interface {
 	hook.Resolver
 
@@ -31,10 +24,6 @@ type Resolver interface {
 
 	SetResponse(w *Response)
 	Response() *Response
-}
-
-type ErrorHandler[T Resolver] interface {
-	Handle(T, error)
 }
 
 type EventCleanupFunc func()
@@ -50,13 +39,13 @@ type Router[T Resolver] struct {
 
 	patterns     map[string]struct{}
 	eventFactory EventFactoryFunc[T]
-	errorHandler ErrorHandler[T]
+	errorHandler HTTPErrorHandler[T]
 	preHook      *hook.Hook[T]
 	responsePool sync.Pool
 	rereaderPool sync.Pool
 }
 
-func New[T Resolver](eventFactory EventFactoryFunc[T], errorHandler ErrorHandler[T]) *Router[T] {
+func New[T Resolver](eventFactory EventFactoryFunc[T], errorHandler HTTPErrorHandler[T]) *Router[T] {
 	return &Router[T]{
 		RouterGroup:  new(RouterGroup[T]),
 		preHook:      new(hook.Hook[T]),
@@ -130,7 +119,7 @@ func (r *Router[T]) BuildMux() (http.Handler, error) {
 			err, _ := e.Request().Context().Value(ctxErrorKey{}).(error)
 			return err
 		}); err != nil && r.errorHandler != nil {
-			r.errorHandler.Handle(event, err)
+			r.errorHandler(event, err)
 		}
 	}), nil
 }

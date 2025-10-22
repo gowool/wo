@@ -21,10 +21,10 @@ func (c *RecoverConfig) SetDefaults() {
 	}
 }
 
-func Recover[E event](cfg RecoverConfig) func(E) error {
+func Recover[T wo.Resolver](cfg RecoverConfig) func(T) error {
 	cfg.SetDefaults()
 
-	return func(e E) (err error) {
+	return func(e T) (err error) {
 		defer func() {
 			if r := recover(); r != nil {
 				recoverErr, ok := r.(error)

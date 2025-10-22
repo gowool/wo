@@ -1,16 +1,25 @@
 package middleware
 
 import (
-	"log/slog"
+	"context"
 	"time"
 
+	"github.com/gowool/wo"
 	"github.com/gowool/wo/session"
 )
 
-func Session[E event](s *session.Session, logger *slog.Logger, skippers ...Skipper[E]) func(E) error {
-	skip := ChainSkipper[E](skippers...)
+type ErrorLogger interface {
+	ErrorContext(ctx context.Context, msg string, keysAndValues ...any)
+}
 
-	return func(e E) error {
+func Session[T wo.Resolver](s *session.Session, logger ErrorLogger, skippers ...Skipper[T]) func(T) error {
+	if s == nil {
+		panic("session middleware: session is nil")
+	}
+
+	skip := ChainSkipper[T](skippers...)
+
+	return func(e T) error {
 		if skip(e) {
 			return e.Next()
 		}
@@ -22,17 +31,21 @@ func Session[E event](s *session.Session, logger *slog.Logger, skippers ...Skipp
 
 		e.SetRequest(r)
 		e.Response().Before(func() {
-			switch s.Status(e.Request().Context()) {
+			ctx := e.Request().Context()
+
+			switch s.Status(ctx) {
 			case session.Modified:
-				token, expiry, err := s.Commit(e.Request().Context())
+				token, expiry, err := s.Commit(ctx)
 				if err != nil {
-					logger.Error("failed to commit session", "error", err)
+					if logger != nil {
+						logger.ErrorContext(ctx, "failed to commit session", "error", err)
+					}
 					return
 				}
 
-				s.WriteSessionCookie(e.Request().Context(), e.Response(), token, expiry)
+				s.WriteSessionCookie(ctx, e.Response(), token, expiry)
 			case session.Destroyed:
-				s.WriteSessionCookie(e.Request().Context(), e.Response(), "", time.Time{})
+				s.WriteSessionCookie(ctx, e.Response(), "", time.Time{})
 			default:
 			}
 		})

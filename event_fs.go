@@ -12,26 +12,6 @@ import (
 
 const StaticWildcardParam = "path"
 
-func FileFS[T interface{ FileFS(fs.FS, string) error }](fsys fs.FS, filename string) func(T) error {
-	if fsys == nil {
-		panic("FileFS: the provided fs.FS argument is nil")
-	}
-
-	return func(e T) error {
-		return e.FileFS(fsys, filename)
-	}
-}
-
-func StaticFS[T interface{ StaticFS(fs.FS, bool) error }](fsys fs.FS, indexFallback bool) func(T) error {
-	if fsys == nil {
-		panic("StaticFS: the provided fs.FS argument is nil")
-	}
-
-	return func(e T) error {
-		return e.StaticFS(fsys, indexFallback)
-	}
-}
-
 // Attachment sends a response as attachment, prompting client to save the file.
 func (e *Event) Attachment(fsys fs.FS, file, name string) error {
 	return e.contentDisposition(fsys, file, name, "attachment")

@@ -418,7 +418,7 @@ func (e *Event) Redirect(status int, url string) error {
 	if status < 300 || status > 308 {
 		return ErrInvalidRedirectCode
 	}
-	e.response.Header().Set("Location", url)
+	e.response.Header().Set(HeaderLocation, url)
 	e.response.WriteHeader(status)
 	return nil
 }

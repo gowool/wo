@@ -120,10 +120,10 @@ func (c *CORSConfig) SetDefaults() {
 	}
 }
 
-func CORS[E event](cfg CORSConfig, skippers ...Skipper[E]) func(E) error {
+func CORS[T wo.Resolver](cfg CORSConfig, skippers ...Skipper[T]) func(T) error {
 	cfg.SetDefaults()
 
-	skip := ChainSkipper[E](skippers...)
+	skip := ChainSkipper[T](skippers...)
 
 	allowOriginPatterns := make([]*regexp.Regexp, 0, len(cfg.AllowOrigins))
 	for _, origin := range cfg.AllowOrigins {
@@ -155,7 +155,7 @@ func CORS[E event](cfg CORSConfig, skippers ...Skipper[E]) func(E) error {
 		maxAge = strconv.Itoa(cfg.MaxAge)
 	}
 
-	return func(e E) error {
+	return func(e T) error {
 		if skip(e) {
 			return e.Next()
 		}

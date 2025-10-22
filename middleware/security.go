@@ -83,12 +83,12 @@ func (c *SecurityConfig) SetDefaults() {
 	}
 }
 
-func Security[E event](cfg SecurityConfig, skippers ...Skipper[E]) func(E) error {
+func Security[T wo.Resolver](cfg SecurityConfig, skippers ...Skipper[T]) func(T) error {
 	cfg.SetDefaults()
 
-	skip := ChainSkipper[E](skippers...)
+	skip := ChainSkipper[T](skippers...)
 
-	return func(e E) error {
+	return func(e T) error {
 		if skip(e) {
 			return e.Next()
 		}

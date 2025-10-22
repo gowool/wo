@@ -51,14 +51,14 @@ func (c *CompressConfig) Validate() error {
 	return nil
 }
 
-func Compress[E event](cfg CompressConfig, skippers ...Skipper[E]) func(E) error {
+func Compress[T wo.Resolver](cfg CompressConfig, skippers ...Skipper[T]) func(T) error {
 	cfg.SetDefaults()
 
 	if err := cfg.Validate(); err != nil {
 		panic(err)
 	}
 
-	skip := ChainSkipper[E](skippers...)
+	skip := ChainSkipper[T](skippers...)
 
 	pool := sync.Pool{
 		New: func() any {
@@ -77,7 +77,7 @@ func Compress[E event](cfg CompressConfig, skippers ...Skipper[E]) func(E) error
 		},
 	}
 
-	return func(e E) error {
+	return func(e T) error {
 		if skip(e) || !strings.Contains(e.Request().Header.Get(wo.HeaderAcceptEncoding), gzipScheme) {
 			return e.Next()
 		}

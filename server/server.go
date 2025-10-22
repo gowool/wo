@@ -49,6 +49,14 @@ type Server struct {
 }
 
 func NewServer(cfg Config, handler http.Handler, logger *slog.Logger) *Server {
+	if handler == nil {
+		panic("server: handler is nil")
+	}
+
+	if logger == nil {
+		panic("server: logger is nil")
+	}
+
 	h2s := &http2.Server{MaxConcurrentStreams: uint32(cfg.HTTP2.MaxConcurrentStreams)}
 	h2Handler := h2c.NewHandler(handler, h2s)
 
