@@ -168,6 +168,7 @@ func RequestLoggerAttrs[T Resolver](e T, status int, err error) []slog.Attr {
 	attributes := make([]slog.Attr, 0, n)
 	attributes = append(attributes,
 		slog.String("protocol", req.Proto),
+		slog.String("remote_addr", req.RemoteAddr),
 		slog.String("host", req.Host),
 		slog.String("method", req.Method),
 		slog.String("pattern", req.Pattern),
