@@ -48,7 +48,7 @@ type Server struct {
 	mu       sync.Mutex
 }
 
-func NewServer(cfg Config, handler http.Handler, logger *slog.Logger) *Server {
+func New(cfg Config, handler http.Handler, logger *slog.Logger) *Server {
 	if handler == nil {
 		panic("server: handler is nil")
 	}
