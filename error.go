@@ -7,6 +7,11 @@ import (
 )
 
 var (
+	_ error = (*HTTPError)(nil)
+	_ error = (*RedirectError)(nil)
+)
+
+var (
 	ErrBadRequest                    = NewHTTPError(http.StatusBadRequest)                    // HTTP 400 Bad Request
 	ErrUnauthorized                  = NewHTTPError(http.StatusUnauthorized)                  // HTTP 401 Unauthorized
 	ErrPaymentRequired               = NewHTTPError(http.StatusPaymentRequired)               // HTTP 402 Payment Required
@@ -119,4 +124,27 @@ func (he *HTTPError) Error() string {
 // Unwrap satisfies the Go 1.13 error wrapper interface.
 func (he *HTTPError) Unwrap() error {
 	return he.Internal
+}
+
+type RedirectError struct {
+	Status int
+	URL    string
+}
+
+func (r *RedirectError) Error() string {
+	return fmt.Sprintf("[%d] %s", r.Status, r.URL)
+}
+
+func NewFoundRedirectError(url string) *RedirectError {
+	return &RedirectError{
+		Status: http.StatusFound,
+		URL:    url,
+	}
+}
+
+func NewPermanentlyRedirectError(url string) *RedirectError {
+	return &RedirectError{
+		Status: http.StatusMovedPermanently,
+		URL:    url,
+	}
 }
