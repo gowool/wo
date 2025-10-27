@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -48,7 +49,7 @@ func RequestLogger[T wo.Resolver](logger *slog.Logger, attrFunc func(e T, status
 			level = slog.LevelInfo
 		}
 
-		logger.LogAttrs(e.Request().Context(), level, "incoming request", attributes...)
+		logger.LogAttrs(context.Background(), level, "incoming request", attributes...)
 
 		ctx := wo.WithRequestLogged(e.Request().Context(), true)
 		e.SetRequest(e.Request().WithContext(ctx))

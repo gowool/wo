@@ -1,6 +1,7 @@
 package wo
 
 import (
+	"context"
 	"errors"
 	"html/template"
 	"log/slog"
@@ -86,7 +87,7 @@ func ErrorHandler[T Resolver](logger *slog.Logger, customRender ...func(T, *HTTP
 		defer func() {
 			if !RequestLogged(e.Request().Context()) {
 				logger.LogAttrs(
-					e.Request().Context(),
+					context.Background(),
 					slog.LevelError,
 					"request failed",
 					RequestLoggerAttrs[T](e, status, err)...,

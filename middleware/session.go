@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"time"
 
 	"github.com/gowool/wo"
@@ -9,7 +8,7 @@ import (
 )
 
 type ErrorLogger interface {
-	ErrorContext(ctx context.Context, msg string, keysAndValues ...any)
+	Error(msg string, keysAndValues ...any)
 }
 
 func Session[T wo.Resolver](s *session.Session, logger ErrorLogger, skippers ...Skipper[T]) func(T) error {
@@ -38,7 +37,7 @@ func Session[T wo.Resolver](s *session.Session, logger ErrorLogger, skippers ...
 				token, expiry, err := s.Commit(ctx)
 				if err != nil {
 					if logger != nil {
-						logger.ErrorContext(ctx, "failed to commit session", "error", err)
+						logger.Error("failed to commit session", "error", err)
 					}
 					return
 				}

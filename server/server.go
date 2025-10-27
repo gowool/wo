@@ -100,7 +100,7 @@ func New(cfg Config, handler http.Handler, logger *slog.Logger) *Server {
 			}
 		}
 	} else {
-		logger.WarnContext(ctx, "TLS configuration is missing, starting server without TLS")
+		logger.Warn("TLS configuration is missing, starting server without TLS")
 	}
 
 	return &Server{
