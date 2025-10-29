@@ -1,23 +1,43 @@
-package wo
+package middleware
 
 import (
 	"bytes"
 	"io"
+	"sync"
+
+	"github.com/gowool/wo"
 )
 
-var (
-	_ io.ReadCloser = (*RereadableReadCloser)(nil)
-	_ Rereader      = (*RereadableReadCloser)(nil)
-)
+func BodyRereadable[T wo.Resolver](skippers ...Skipper[T]) func(T) error {
+	skip := ChainSkipper[T](skippers...)
 
-// Rereader defines an interface for rewindable readers.
-type Rereader interface {
-	Reread()
+	pool := &sync.Pool{
+		New: func() any { return new(rereadableReadCloser) },
+	}
+
+	return func(e T) error {
+		if skip(e) {
+			return e.Next()
+		}
+
+		// wrap the request body to allow multiple reads
+		read := pool.Get().(*rereadableReadCloser)
+		read.Reset(e.Request().Body)
+		e.Request().Body = read
+
+		defer func() {
+			e.Request().Body = read.ReadCloser
+			read.Reset(nil)
+			pool.Put(read)
+		}()
+
+		return e.Next()
+	}
 }
 
-// RereadableReadCloser defines a wrapper around a io.ReadCloser reader
+// rereadableReadCloser defines a wrapper around a io.ReadCloser reader
 // allowing to read the original reader multiple times.
-type RereadableReadCloser struct {
+type rereadableReadCloser struct {
 	io.ReadCloser
 
 	copy   *bytes.Buffer
@@ -30,7 +50,7 @@ type RereadableReadCloser struct {
 // the read data into an internal bytes buffer.
 //
 // On EOF the r is "rewinded" to allow reading from r multiple times.
-func (r *RereadableReadCloser) Read(b []byte) (int, error) {
+func (r *rereadableReadCloser) Read(b []byte) (int, error) {
 	if r.active == nil {
 		if r.copy == nil {
 			r.copy = new(bytes.Buffer)
@@ -49,7 +69,7 @@ func (r *RereadableReadCloser) Read(b []byte) (int, error) {
 // Reread satisfies the [Rereader] interface and resets the r internal state to allow rereads.
 //
 // note: not named Reset to avoid conflicts with other reader interfaces.
-func (r *RereadableReadCloser) Reread() {
+func (r *rereadableReadCloser) Reread() {
 	if r.copy == nil || r.copy.Len() == 0 {
 		return // nothing to reset or it has been already reset
 	}
@@ -59,7 +79,7 @@ func (r *RereadableReadCloser) Reread() {
 	r.active = io.TeeReader(oldCopy, r.copy)
 }
 
-func (r *RereadableReadCloser) Reset(rc io.ReadCloser) {
+func (r *rereadableReadCloser) Reset(rc io.ReadCloser) {
 	r.ReadCloser = rc
 	r.copy = nil
 	r.active = nil

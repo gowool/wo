@@ -1,17 +1,15 @@
-package wo_test
+package middleware
 
 import (
 	"io"
 	"strings"
 	"testing"
-
-	"github.com/gowool/wo"
 )
 
-func TestRereadableReadCloser(t *testing.T) {
+func Test_RereadableReadCloser(t *testing.T) {
 	content := "test"
 
-	rereadable := &wo.RereadableReadCloser{
+	rereadable := &rereadableReadCloser{
 		ReadCloser: io.NopCloser(strings.NewReader(content)),
 	}
 

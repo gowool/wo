@@ -465,7 +465,7 @@ func (e *Event) BindBody(dst any) error {
 		// doesn't ensure that the entire body is a valid json string
 		// and it is not guaranteed that it will reach EOF to trigger the reread reset
 		// (ex. in case of trailing spaces or invalid trailing parts like: `{"test":1},something`)
-		if body, ok := e.request.Body.(Rereader); ok {
+		if body, ok := e.request.Body.(interface{ Reread() }); ok {
 			body.Reread()
 		}
 	case MIMEApplicationXML, MIMETextXML:

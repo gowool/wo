@@ -63,7 +63,7 @@ func (r *limitedReader) Read(b []byte) (int, error) {
 }
 
 func (r *limitedReader) Reread() {
-	if rr, ok := r.ReadCloser.(wo.Rereader); ok {
+	if rr, ok := r.ReadCloser.(interface{ Reread() }); ok {
 		rr.Reread()
 	}
 }

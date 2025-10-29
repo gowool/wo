@@ -42,7 +42,6 @@ type Router[T Resolver] struct {
 	errorHandler HTTPErrorHandler[T]
 	preHook      *hook.Hook[T]
 	responsePool sync.Pool
-	rereaderPool sync.Pool
 }
 
 func New[T Resolver](eventFactory EventFactoryFunc[T], errorHandler HTTPErrorHandler[T]) *Router[T] {
@@ -54,9 +53,6 @@ func New[T Resolver](eventFactory EventFactoryFunc[T], errorHandler HTTPErrorHan
 		errorHandler: errorHandler,
 		responsePool: sync.Pool{
 			New: func() any { return NewResponse(nil) },
-		},
-		rereaderPool: sync.Pool{
-			New: func() any { return new(RereadableReadCloser) },
 		},
 	}
 }
@@ -90,17 +86,9 @@ func (r *Router[T]) BuildMux() (http.Handler, error) {
 		resp := r.responsePool.Get().(*Response)
 		resp.Reset(w)
 
-		// wrap the request body to allow multiple reads
-		read := r.rereaderPool.Get().(*RereadableReadCloser)
-		read.Reset(req.Body)
-		req.Body = read
-
 		defer func() {
 			resp.Reset(nil)
 			r.responsePool.Put(resp)
-
-			read.Reset(nil)
-			r.rereaderPool.Put(read)
 		}()
 
 		event, cleanupFunc := r.eventFactory(resp, req)
