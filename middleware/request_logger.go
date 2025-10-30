@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"context"
-	"errors"
 	"log/slog"
 	"net/http"
 
@@ -28,14 +26,6 @@ func RequestLogger[T wo.Resolver](logger *slog.Logger, attrFunc func(e T, status
 		err := e.Next()
 
 		status := e.Response().Status
-		if err != nil {
-			var httpErr *wo.HTTPError
-			if errors.As(err, &httpErr) {
-				status = httpErr.Status
-			} else {
-				status = http.StatusInternalServerError
-			}
-		}
 
 		attributes := attrFunc(e, status, err)
 
@@ -46,10 +36,12 @@ func RequestLogger[T wo.Resolver](logger *slog.Logger, attrFunc func(e T, status
 		case status >= http.StatusInternalServerError:
 			level = slog.LevelError
 		default:
-			level = slog.LevelInfo
+			if err != nil {
+				level = slog.LevelError
+			}
 		}
 
-		logger.LogAttrs(context.Background(), level, "incoming request", attributes...)
+		logger.LogAttrs(e.Request().Context(), level, "incoming request", attributes...)
 
 		ctx := wo.WithRequestLogged(e.Request().Context(), true)
 		e.SetRequest(e.Request().WithContext(ctx))
