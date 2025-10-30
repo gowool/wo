@@ -183,7 +183,7 @@ func RequestLoggerAttrs[T Resolver](e T, status int, err error) []slog.Attr {
 	)
 
 	if id != "" {
-		attributes = append(attributes, slog.String("request-id", id))
+		attributes = append(attributes, slog.String("request_id", id))
 	}
 
 	if err != nil {
