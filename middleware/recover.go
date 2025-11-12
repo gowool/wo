@@ -12,7 +12,7 @@ import (
 type RecoverConfig struct {
 	// Size of the stack to be printed.
 	// Optional. Default value 2KB.
-	StackSize int `json:"stackSize,omitempty" yaml:"stackSize,omitempty"`
+	StackSize int `env:"STACK_SIZE" json:"stackSize,omitempty" yaml:"stackSize,omitempty"`
 }
 
 func (c *RecoverConfig) SetDefaults() {

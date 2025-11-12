@@ -11,7 +11,7 @@ const maxBodySize int64 = 32 << 20
 type BodyLimitConfig struct {
 	// Maximum allowed size for a request body, default is 32MB.
 	// If Limit is less to 0, no limit is applied.
-	Limit int64 `json:"limit,omitempty" yaml:"limit,omitempty"`
+	Limit int64 `env:"LIMIT" json:"limit,omitempty" yaml:"limit,omitempty"`
 }
 
 func (c *BodyLimitConfig) SetDefaults() {

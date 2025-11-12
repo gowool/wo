@@ -10,12 +10,12 @@ type SecurityConfig struct {
 	// XSSProtection provides protection against cross-site scripting attack (XSS)
 	// by setting the `X-XSS-Protection` header.
 	// Optional. Default value "1; mode=block".
-	XSSProtection string `json:"xssProtection,omitempty" yaml:"xssProtection,omitempty"`
+	XSSProtection string `env:"XSS_PROTECTION" json:"xssProtection,omitempty" yaml:"xssProtection,omitempty"`
 
 	// ContentTypeNosniff provides protection against overriding Content-Type
 	// header by setting the `X-Content-Type-Options` header.
 	// Optional. Default value "nosniff".
-	ContentTypeNosniff string `json:"contentTypeNosniff,omitempty" yaml:"contentTypeNosniff,omitempty"`
+	ContentTypeNosniff string `env:"CONTENT_TYPE_NO_SNIFF" json:"contentTypeNoSniff,omitempty" yaml:"contentTypeNoSniff,omitempty"`
 
 	// XFrameOptions can be used to indicate whether or not a browser should
 	// be allowed to render a page in a <frame>, <iframe> or <object> .
@@ -27,45 +27,45 @@ type SecurityConfig struct {
 	// - "SAMEORIGIN" - The page can only be displayed in a frame on the same origin as the page itself.
 	// - "DENY" - The page cannot be displayed in a frame, regardless of the site attempting to do so.
 	// - "ALLOW-FROM uri" - The page can only be displayed in a frame on the specified origin.
-	XFrameOptions string `json:"xFrameOptions,omitempty" yaml:"xFrameOptions,omitempty"`
+	XFrameOptions string `env:"X_FRAME_OPTIONS" json:"xFrameOptions,omitempty" yaml:"xFrameOptions,omitempty"`
 
 	// HSTSMaxAge sets the `Strict-Transport-Security` header to indicate how
 	// long (in seconds) browsers should remember that this site is only to
 	// be accessed using HTTPS. This reduces your exposure to some SSL-stripping
 	// man-in-the-middle (MITM) attacks.
 	// Optional. Default value 15724800.
-	HSTSMaxAge int `json:"hstsMaxAge,omitempty" yaml:"hstsMaxAge,omitempty"`
+	HSTSMaxAge int `env:"HSTS_MAX_AGE" json:"hstsMaxAge,omitempty" yaml:"hstsMaxAge,omitempty"`
 
 	// HSTSExcludeSubdomains won't include subdomains tag in the `Strict Transport Security`
 	// header, excluding all subdomains from security policy. It has no effect
 	// unless HSTSMaxAge is set to a non-zero value.
 	// Optional. Default value false.
-	HSTSExcludeSubdomains bool `json:"hstsExcludeSubdomains,omitempty" yaml:"hstsExcludeSubdomains,omitempty"`
+	HSTSExcludeSubdomains bool `env:"HSTS_EXCLUDE_SUBDOMAINS" json:"hstsExcludeSubdomains,omitempty" yaml:"hstsExcludeSubdomains,omitempty"`
 
 	// ContentSecurityPolicy sets the `Content-Security-Policy` header providing
 	// security against cross-site scripting (XSS), clickjacking and other code
 	// injection attacks resulting from execution of malicious content in the
 	// trusted web page context.
 	// Optional. Default value "".
-	ContentSecurityPolicy string `json:"contentSecurityPolicy,omitempty" yaml:"contentSecurityPolicy,omitempty"`
+	ContentSecurityPolicy string `env:"CONTENT_SECURITY_POLICY" json:"contentSecurityPolicy,omitempty" yaml:"contentSecurityPolicy,omitempty"`
 
 	// CSPReportOnly would use the `Content-Security-Policy-Report-Only` header instead
 	// of the `Content-Security-Policy` header. This allows iterative updates of the
 	// content security policy by only reporting the violations that would
 	// have occurred instead of blocking the resource.
 	// Optional. Default value false.
-	CSPReportOnly bool `json:"cspReportOnly,omitempty" yaml:"cspReportOnly,omitempty"`
+	CSPReportOnly bool `env:"CSP_REPORT_ONLY" json:"cspReportOnly,omitempty" yaml:"cspReportOnly,omitempty"`
 
 	// HSTSPreloadEnabled will add the preload tag in the `Strict Transport Security`
 	// header, which enables the domain to be included in the HSTS preload list
 	// maintained by Chrome (and used by Firefox and Safari): https://hstspreload.org/
 	// Optional.  Default value false.
-	HSTSPreloadEnabled bool `json:"hstsPreloadEnabled,omitempty" yaml:"hstsPreloadEnabled,omitempty"`
+	HSTSPreloadEnabled bool `env:"HSTS_PRELOAD_ENABLED" json:"hstsPreloadEnabled,omitempty" yaml:"hstsPreloadEnabled,omitempty"`
 
 	// ReferrerPolicy sets the `Referrer-Policy` header providing security against
 	// leaking potentially sensitive request paths to third parties.
 	// Optional. Default value "".
-	ReferrerPolicy string `json:"referrerPolicy,omitempty" yaml:"referrerPolicy,omitempty"`
+	ReferrerPolicy string `env:"REFERRER_POLICY" json:"referrerPolicy,omitempty" yaml:"referrerPolicy,omitempty"`
 }
 
 func (c *SecurityConfig) SetDefaults() {

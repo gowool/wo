@@ -23,7 +23,7 @@ type CORSConfig struct {
 	// Optional. Default value []string{"*"}.
 	//
 	// See also: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin
-	AllowOrigins []string `json:"allowOrigins,omitempty" yaml:"allowOrigins,omitempty"`
+	AllowOrigins []string `env:"ALLOW_ORIGINS" json:"allowOrigins,omitempty" yaml:"allowOrigins,omitempty"`
 
 	// AllowOriginFunc is a custom function to validate the origin. It takes the
 	// origin as an argument and returns true if allowed or false otherwise. If
@@ -47,7 +47,7 @@ type CORSConfig struct {
 	// from `Allow` header that echo.Router set into context.
 	//
 	// See also: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Methods
-	AllowMethods []string `json:"allowMethods,omitempty" yaml:"allowMethods,omitempty"`
+	AllowMethods []string `env:"ALLOW_METHODS" json:"allowMethods,omitempty" yaml:"allowMethods,omitempty"`
 
 	// AllowHeaders determines the value of the Access-Control-Allow-Headers
 	// response header.  This header is used in response to a preflight request to
@@ -56,7 +56,7 @@ type CORSConfig struct {
 	// Optional. Default value []string{}.
 	//
 	// See also: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Headers
-	AllowHeaders []string `json:"allowHeaders,omitempty" yaml:"allowHeaders,omitempty"`
+	AllowHeaders []string `env:"ALLOW_HEADERS" json:"allowHeaders,omitempty" yaml:"allowHeaders,omitempty"`
 
 	// AllowCredentials determines the value of the
 	// Access-Control-Allow-Credentials response header.  This header indicates
@@ -73,7 +73,7 @@ type CORSConfig struct {
 	// https://blog.portswigger.net/2016/10/exploiting-cors-misconfigurations-for.html
 	//
 	// See also: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials
-	AllowCredentials bool `json:"allowCredentials,omitempty" yaml:"allowCredentials,omitempty"`
+	AllowCredentials bool `env:"ALLOW_CREDENTIALS" json:"allowCredentials,omitempty" yaml:"allowCredentials,omitempty"`
 
 	// UnsafeWildcardOriginWithAllowCredentials UNSAFE/INSECURE: allows wildcard '*' origin to be used with AllowCredentials
 	// flag. In that case we consider any origin allowed and send it back to the client with `Access-Control-Allow-Origin` header.
@@ -82,7 +82,7 @@ type CORSConfig struct {
 	// attacks. See: https://github.com/labstack/echo/issues/2400 for discussion on the subject.
 	//
 	// Optional. Default value is false.
-	UnsafeWildcardOriginWithAllowCredentials bool `json:"unsafeWildcardOriginWithAllowCredentials,omitempty" yaml:"unsafeWildcardOriginWithAllowCredentials,omitempty"`
+	UnsafeWildcardOriginWithAllowCredentials bool `env:"UNSAFE_WILDCARD_ORIGIN_WITH_ALLOW_CREDENTIALS" json:"unsafeWildcardOriginWithAllowCredentials,omitempty" yaml:"unsafeWildcardOriginWithAllowCredentials,omitempty"`
 
 	// ExposeHeaders determines the value of Access-Control-Expose-Headers, which
 	// defines a list of headers that clients are allowed to access.
@@ -90,7 +90,7 @@ type CORSConfig struct {
 	// Optional. Default value []string{}, in which case the header is not set.
 	//
 	// See also: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Expose-Header
-	ExposeHeaders []string `json:"exposeHeaders,omitempty" yaml:"exposeHeaders,omitempty"`
+	ExposeHeaders []string `env:"EXPOSE_HEADERS" json:"exposeHeaders,omitempty" yaml:"exposeHeaders,omitempty"`
 
 	// MaxAge determines the value of the Access-Control-Max-Age response header.
 	// This header indicates how long (in seconds) the results of a preflight
@@ -100,7 +100,7 @@ type CORSConfig struct {
 	// Optional. Default value 0 - meaning header is not sent.
 	//
 	// See also: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Max-Age
-	MaxAge int `json:"maxAge,omitempty" yaml:"maxAge,omitempty"`
+	MaxAge int `env:"MAX_AGE" json:"maxAge,omitempty" yaml:"maxAge,omitempty"`
 }
 
 func (c *CORSConfig) SetDefaults() {

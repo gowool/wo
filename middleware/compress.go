@@ -19,7 +19,7 @@ const gzipScheme = "gzip"
 type CompressConfig struct {
 	// Gzip compression level.
 	// Optional. Default value -1.
-	Level int `json:"level,omitempty" yaml:"level,omitempty"`
+	Level int `env:"LEVEL" json:"level,omitempty" yaml:"level,omitempty"`
 
 	// Length threshold before gzip compression is applied.
 	// Optional. Default value 1024.
@@ -32,7 +32,7 @@ type CompressConfig struct {
 	//
 	// See also:
 	// https://webmasters.stackexchange.com/questions/31750/what-is-recommended-minimum-object-size-for-gzip-performance-benefits
-	MinLength int `json:"minLength,omitempty" yaml:"minLength,omitempty"`
+	MinLength int `env:"MIN_LENGTH" json:"minLength,omitempty" yaml:"minLength,omitempty"`
 }
 
 func (c *CompressConfig) SetDefaults() {
