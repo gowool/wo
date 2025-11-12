@@ -429,7 +429,7 @@ func (e *Event) Redirect(status int, url string) error {
 // BindQueryParams binds query params to bindable object
 func (e *Event) BindQueryParams(dst any) error {
 	if err := BindData(dst, e.QueryParams(), "query", nil); err != nil {
-		return NewHTTPError(http.StatusBadRequest, err.Error()).SetInternal(err)
+		return ErrBadRequest.WithInternal(err)
 	}
 	return nil
 }
@@ -437,7 +437,7 @@ func (e *Event) BindQueryParams(dst any) error {
 // BindHeaders binds HTTP headers to a bindable object
 func (e *Event) BindHeaders(dst any) error {
 	if err := BindData(dst, e.request.Header, "header", nil); err != nil {
-		return NewHTTPError(http.StatusBadRequest, err.Error()).SetInternal(err)
+		return ErrBadRequest.WithInternal(err)
 	}
 	return nil
 }
@@ -459,7 +459,7 @@ func (e *Event) BindBody(dst any) error {
 	switch mediatype {
 	case MIMEApplicationJSON:
 		if err := encode.UnmarshalJSON(e.request.Body, dst); err != nil {
-			return NewHTTPError(http.StatusBadRequest, err.Error()).SetInternal(err)
+			return ErrBadRequest.WithInternal(err)
 		}
 		// manually call Reread because single call of encode.UnmarshalJSON
 		// doesn't ensure that the entire body is a valid json string
@@ -472,29 +472,29 @@ func (e *Event) BindBody(dst any) error {
 		if err := xml.NewDecoder(e.request.Body).Decode(dst); err != nil {
 			var ute *xml.UnsupportedTypeError
 			if errors.As(err, &ute) {
-				return NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Unsupported type error: type=%v, error=%v", ute.Type, ute.Error())).SetInternal(err)
+				return ErrBadRequest.WithInternal(err).SetMessage(fmt.Sprintf("Unsupported type error: type=%v, error=%v", ute.Type, ute.Error()))
 			}
 			var se *xml.SyntaxError
 			if errors.As(err, &se) {
-				return NewHTTPError(http.StatusBadRequest, fmt.Sprintf("Syntax error: line=%v, error=%v", se.Line, se.Error())).SetInternal(err)
+				return ErrBadRequest.WithInternal(err).SetMessage(fmt.Sprintf("Syntax error: line=%v, error=%v", se.Line, se.Error()))
 			}
-			return NewHTTPError(http.StatusBadRequest, err.Error()).SetInternal(err)
+			return ErrBadRequest.WithInternal(err)
 		}
 	case MIMEApplicationForm:
 		params, err := e.FormParams()
 		if err != nil {
-			return NewHTTPError(http.StatusBadRequest, err.Error()).SetInternal(err)
+			return ErrBadRequest.WithInternal(err)
 		}
 		if err = BindData(dst, params, "form", nil); err != nil {
-			return NewHTTPError(http.StatusBadRequest, err.Error()).SetInternal(err)
+			return ErrBadRequest.WithInternal(err)
 		}
 	case MIMEMultipartForm:
 		params, err := e.MultipartForm()
 		if err != nil {
-			return NewHTTPError(http.StatusBadRequest, err.Error()).SetInternal(err)
+			return ErrBadRequest.WithInternal(err)
 		}
 		if err = BindData(dst, params.Value, "form", params.File); err != nil {
-			return NewHTTPError(http.StatusBadRequest, err.Error()).SetInternal(err)
+			return ErrBadRequest.WithInternal(err)
 		}
 	default:
 		return ErrUnsupportedMediaType
