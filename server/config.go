@@ -11,19 +11,19 @@ import (
 
 type Config struct {
 	// Host and port to handle as https server.
-	Address string `json:"address,omitempty" yaml:"address,omitempty"`
+	Address string `env:"ADDRESS" json:"address,omitempty" yaml:"address,omitempty"`
 
 	// HTTP2 defines http/2 server options.
-	HTTP2 *HTTP2Config `json:"http2,omitempty" yaml:"http2,omitempty"`
+	HTTP2 *HTTP2Config `envPrefix:"HTTP2_" json:"http2,omitempty" yaml:"http2,omitempty"`
 
 	// HTTP3 enables HTTP/3 protocol on the entryPoint. HTTP/3 requires a TCP entryPoint,
 	// as HTTP/3 always starts as a TCP connection that then gets upgraded to UDP.
 	// In most scenarios, this entryPoint is the same as the one used for TLS traffic.
-	HTTP3 *HTTP3Config `json:"http3,omitempty" yaml:"http3,omitempty"`
+	HTTP3 *HTTP3Config `envPrefix:"HTTP3_" json:"http3,omitempty" yaml:"http3,omitempty"`
 
-	Transport TransportConfig `json:"transport,omitempty" yaml:"transport,omitempty"`
+	Transport TransportConfig `envPrefix:"TRANSPORT_" json:"transport,omitempty" yaml:"transport,omitempty"`
 
-	TLS *TLSConfig `json:"tls,omitempty" yaml:"tls,omitempty"`
+	TLS *TLSConfig `envPrefix:"TLS_" json:"tls,omitempty" yaml:"tls,omitempty"`
 }
 
 func (c *Config) SetDefaults() {
@@ -55,7 +55,7 @@ type HTTP2Config struct {
 	// MaxConcurrentStreams specifies the number of concurrent
 	// streams per connection that each client is allowed to initiate.
 	// The MaxConcurrentStreams value must be greater than zero, defaults to 250.
-	MaxConcurrentStreams uint `json:"maxConcurrentStreams,omitempty" yaml:"maxConcurrentStreams,omitempty"`
+	MaxConcurrentStreams uint `env:"MAX_CONCURRENT_STREAMS" json:"maxConcurrentStreams,omitempty" yaml:"maxConcurrentStreams,omitempty"`
 }
 
 func (c *HTTP2Config) SetDefaults() {
@@ -68,7 +68,7 @@ type HTTP3Config struct {
 	// AdvertisedPort defines which UDP port to advertise as the HTTP/3 authority.
 	// It defaults to the entryPoint's address port. It can be used to override
 	// the authority in the alt-svc header.
-	AdvertisedPort uint `json:"advertisedPort,omitempty" yaml:"advertisedPort,omitempty"`
+	AdvertisedPort uint `env:"ADVERTISED_PORT" json:"advertisedPort,omitempty" yaml:"advertisedPort,omitempty"`
 }
 
 type TransportConfig struct {
@@ -80,7 +80,7 @@ type TransportConfig struct {
 	// decisions on each request body's acceptable deadline or
 	// upload rate, most users will prefer to use
 	// ReadHeaderTimeout. It is valid to use them both.
-	ReadTimeout time.Duration `json:"readTimeout,omitempty,format:units" yaml:"readTimeout,omitempty"`
+	ReadTimeout time.Duration `env:"READ_TIMEOUT" json:"readTimeout,omitempty,format:units" yaml:"readTimeout,omitempty"`
 
 	// ReadHeaderTimeout is the amount of time allowed to read
 	// request headers. The connection's read deadline is reset
@@ -88,32 +88,32 @@ type TransportConfig struct {
 	// is considered too slow for the body. If zero, the value of
 	// ReadTimeout is used. If negative, or if zero and ReadTimeout
 	// is zero or negative, there is no timeout.
-	ReadHeaderTimeout time.Duration `json:"readHeaderTimeout,omitempty,format:units" yaml:"readHeaderTimeout,omitempty"`
+	ReadHeaderTimeout time.Duration `env:"READ_HEADER_TIMEOUT" json:"readHeaderTimeout,omitempty,format:units" yaml:"readHeaderTimeout,omitempty"`
 
 	// WriteTimeout is the maximum duration before timing out
 	// writes of the response. It is reset whenever a new
 	// request's header is read. Like ReadTimeout, it does not
 	// let Handlers make decisions on a per-request basis.
 	// A zero or negative value means there will be no timeout.
-	WriteTimeout time.Duration `json:"writeTimeout,omitempty,format:units" yaml:"writeTimeout,omitempty"`
+	WriteTimeout time.Duration `env:"WRITE_TIMEOUT" json:"writeTimeout,omitempty,format:units" yaml:"writeTimeout,omitempty"`
 
 	// IdleTimeout is the maximum amount of time to wait for the
 	// next request when keep-alives are enabled. If zero, the value
 	// of ReadTimeout is used. If negative, or if zero and ReadTimeout
 	// is zero or negative, there is no timeout.
-	IdleTimeout time.Duration `json:"idleTimeout,omitempty,format:units" yaml:"idleTimeout,omitempty"`
+	IdleTimeout time.Duration `env:"IDLE_TIMEOUT" json:"idleTimeout,omitempty,format:units" yaml:"idleTimeout,omitempty"`
 
 	// MaxHeaderBytes controls the maximum number of bytes the
 	// server will read parsing the request header's keys and
 	// values, including the request line. It does not limit the
 	// size of the request body.
 	// If zero, http.DefaultMaxHeaderBytes is used.
-	MaxHeaderBytes int `json:"maxHeaderBytes,omitempty" yaml:"maxHeaderBytes,omitempty"`
+	MaxHeaderBytes int `env:"MAX_HEADER_BYTES" json:"maxHeaderBytes,omitempty" yaml:"maxHeaderBytes,omitempty"`
 }
 
 type TLSConfig struct {
-	InsecureSkipVerify bool                `json:"insecureSkipVerify,omitempty" yaml:"insecureSkipVerify,omitempty"`
-	Certificates       []CertificateConfig `json:"certificates,omitempty" yaml:"certificates,omitempty"`
+	InsecureSkipVerify bool                `env:"INSECURE_SKIP_VERIFY" json:"insecureSkipVerify,omitempty" yaml:"insecureSkipVerify,omitempty"`
+	Certificates       []CertificateConfig `envPrefix:"CERTIFICATE_" json:"certificates,omitempty" yaml:"certificates,omitempty"`
 }
 
 func (c TLSConfig) Validate() error {
@@ -137,8 +137,8 @@ func (c TLSConfig) tls() (*tls.Config, error) {
 }
 
 type CertificateConfig struct {
-	CertFile string `json:"certFile,omitempty" yaml:"certFile,omitempty"`
-	KeyFile  string `json:"keyFile,omitempty" yaml:"keyFile,omitempty"`
+	CertFile string `env:"CERT_FILE" json:"certFile,omitempty" yaml:"certFile,omitempty"`
+	KeyFile  string `env:"KEY_FILE" json:"keyFile,omitempty" yaml:"keyFile,omitempty"`
 }
 
 func (c CertificateConfig) Validate() error {
