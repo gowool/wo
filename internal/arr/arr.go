@@ -13,3 +13,10 @@ func Map[T any, R any](collection []T, iteratee func(item T) R) []R {
 
 	return result
 }
+
+func Copy[T any](collection []T) []T {
+	tmp := make([]T, len(collection))
+	copy(tmp, collection)
+
+	return tmp
+}

@@ -37,11 +37,11 @@ const errorTemplate = `<!DOCTYPE html>
 		  overflow: hidden;
 		}
 	</style>
-	<title>{{.code}} - {{.title}}</title>
+	<title>{{.status}} - {{.title}}</title>
 </head>
 <body>
 	<h1>{{.title}}!</h1>
-	<h2>Code {{.code}}</h2>
+	<h2>Code {{.status}}</h2>
 </body>
 </html>`
 

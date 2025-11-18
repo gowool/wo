@@ -20,6 +20,7 @@ const (
 	MIMEMultipartForm                    = "multipart/form-data"
 	MIMEOctetStream                      = "application/octet-stream"
 	MIMEEventStream                      = "text/event-stream"
+	MIMEApplicationZip                   = "application/zip"
 )
 
 const (
@@ -69,6 +70,9 @@ const (
 	HeaderCacheControl        = "Cache-Control"
 	HeaderConnection          = "Connection"
 	HeaderXRobotsTag          = "X-Robots-Tag"
+	HeaderXRateLimitLimit     = "X-RateLimit-Limit"
+	HeaderXRateLimitRemaining = "X-RateLimit-Remaining"
+	HeaderXRateLimitReset     = "X-RateLimit-Reset"
 
 	// Access control
 	HeaderAccessControlRequestMethod    = "Access-Control-Request-Method"
