@@ -4,7 +4,7 @@ go 1.25
 
 require (
 	github.com/danielgtaylor/huma/v2 v2.34.1
-	github.com/gowool/wo v0.0.0-20251118195307-aea6712fb8c0
+	github.com/gowool/wo v0.0.0-20251119013823-557077a598b4
 )
 
 require (
