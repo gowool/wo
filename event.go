@@ -24,6 +24,7 @@ const (
 	IndexPage        = "index.html"
 	DefaultMaxMemory = 32 << 20 // 32mb
 	defaultIndent    = "  "
+	keyPretty        = "&pretty="
 	xmlHTTPRequest   = "XMLHttpRequest"
 )
 
@@ -282,11 +283,6 @@ func (e *Event) String(status int, data string) error {
 }
 
 func (e *Event) jsonPBlob(status int, callback string, i any) error {
-	indent := ""
-	if _, pretty := e.QueryParams()["pretty"]; pretty {
-		indent = defaultIndent
-	}
-
 	e.setResponseHeaderIfEmpty(HeaderContentType, MIMEApplicationJavaScriptCharsetUTF8)
 	e.response.WriteHeader(status)
 
@@ -294,7 +290,7 @@ func (e *Event) jsonPBlob(status int, callback string, i any) error {
 		return err
 	}
 
-	if err := encode.MarshalJSON(e.response, i, indent); err != nil {
+	if err := encode.MarshalJSON(e.response, i, indent(e.Request())); err != nil {
 		return err
 	}
 
@@ -313,11 +309,7 @@ func (e *Event) json(status int, i any, indent string) error {
 
 // JSON sends a JSON response with status code.
 func (e *Event) JSON(status int, i any) error {
-	indent := ""
-	if _, pretty := e.QueryParams()["pretty"]; pretty {
-		indent = defaultIndent
-	}
-	return e.json(status, i, indent)
+	return e.json(status, i, indent(e.Request()))
 }
 
 // JSONPretty sends a pretty-print JSON with status code.
@@ -366,11 +358,7 @@ func (e *Event) xml(status int, i any, indent string) error {
 // XML writes an XML response.
 // It automatically prepends the generic [xml.Header] string to the response.
 func (e *Event) XML(status int, i any) error {
-	indent := ""
-	if _, pretty := e.QueryParams()["pretty"]; pretty {
-		indent = defaultIndent
-	}
-	return e.xml(status, i, indent)
+	return e.xml(status, i, indent(e.Request()))
 }
 
 // XMLPretty sends a pretty-print XML with status code.
@@ -500,4 +488,11 @@ func (e *Event) BindBody(dst any) error {
 		return ErrUnsupportedMediaType
 	}
 	return nil
+}
+
+func indent(r *http.Request) string {
+	if strings.Contains("&"+r.URL.RawQuery, keyPretty) {
+		return defaultIndent
+	}
+	return ""
 }

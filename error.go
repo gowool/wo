@@ -69,9 +69,10 @@ func AsHTTPError(err error) *HTTPError {
 
 // HTTPError represents an error that occurred while handling a request.
 type HTTPError struct {
-	Internal error `json:"-"` // Stores the error returned by an external dependency
-	Message  any   `json:"message"`
-	Status   int   `json:"-"`
+	Internal error
+	Message  any
+	Status   int
+	Debug    bool
 }
 
 // NewHTTPError creates a new HTTPError instance.
@@ -124,6 +125,53 @@ func (he *HTTPError) Error() string {
 // Unwrap satisfies the Go 1.13 error wrapper interface.
 func (he *HTTPError) Unwrap() error {
 	return he.Internal
+}
+
+func (he *HTTPError) ToMap() map[string]any {
+	data := map[string]any{
+		"status": he.Status,
+		"title":  he.title(),
+	}
+
+	if detail := he.detail(); detail != nil {
+		data["detail"] = detail
+	}
+
+	if internal := he.internal(); internal != "" {
+		data["internal"] = internal
+	}
+
+	return data
+}
+
+type errData struct {
+	Status   int    `json:"status"`
+	Title    string `json:"title"`
+	Detail   any    `json:"detail,omitempty"`
+	Internal string `json:"internal,omitempty"`
+}
+
+func (he *HTTPError) title() string {
+	return http.StatusText(he.Status)
+}
+
+func (he *HTTPError) detail() any {
+	switch m := he.Message.(type) {
+	case error:
+		return m.Error()
+	case string:
+		if he.title() == m {
+			return nil
+		}
+	}
+	return he.Message
+}
+
+func (he *HTTPError) internal() string {
+	if he.Debug && he.Internal != nil {
+		return he.Internal.Error()
+	}
+	return ""
 }
 
 type RedirectError struct {

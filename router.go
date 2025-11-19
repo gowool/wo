@@ -92,11 +92,9 @@ func (r *Router[T]) BuildMux() (http.Handler, error) {
 		}()
 
 		event, cleanupFunc := r.eventFactory(resp, req)
-		defer func() {
-			if cleanupFunc != nil {
-				cleanupFunc()
-			}
-		}()
+		if cleanupFunc != nil {
+			defer cleanupFunc()
+		}
 
 		if err := r.preHook.Trigger(event, func(e T) error {
 			ctx := context.WithValue(e.Request().Context(), ctxEventKey{}, e)

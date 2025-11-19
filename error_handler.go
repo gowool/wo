@@ -3,6 +3,7 @@ package wo
 import (
 	"context"
 	"errors"
+	"fmt"
 	"html/template"
 	"log/slog"
 	"net/http"
@@ -45,19 +46,14 @@ const errorTemplate = `<!DOCTYPE html>
 </body>
 </html>`
 
+var errorTpl = template.Must(template.New("error_template").Parse(errorTemplate))
+
 type HTTPErrorHandler[T Resolver] func(T, error)
 
-func ErrorHandler[T Resolver](logger *slog.Logger, customRender ...func(T, *HTTPError, map[string]any)) HTTPErrorHandler[T] {
+func ErrorHandler[T Resolver](render func(T, *HTTPError), logger *slog.Logger) HTTPErrorHandler[T] {
 	if logger == nil {
-		panic("error handler: logger is nil")
+		logger = slog.New(slog.DiscardHandler)
 	}
-
-	var render func(T, *HTTPError, map[string]any) = stubErrorRender
-	if len(customRender) > 0 {
-		render = customRender[0]
-	}
-
-	tpl := template.Must(template.New("error_template").Parse(errorTemplate))
 
 	return func(e T, err error) {
 		req := e.Request()
@@ -82,27 +78,27 @@ func ErrorHandler[T Resolver](logger *slog.Logger, customRender ...func(T, *HTTP
 			httpErr = ErrInternalServerError.WithInternal(err)
 		}
 
-		status := httpErr.Status
-
 		defer func() {
 			if !RequestLogged(e.Request().Context()) {
 				logger.LogAttrs(
 					context.Background(),
 					slog.LevelError,
 					"request failed",
-					RequestLoggerAttrs[T](e, status, err)...,
+					RequestLoggerAttrs[T](e, httpErr.Status, err)...,
 				)
 			}
 		}()
 
 		if req.Method == http.MethodHead {
-			res.WriteHeader(status)
+			res.WriteHeader(httpErr.Status)
 			return
 		}
 
-		data := errorData(httpErr, Debug(req.Context()))
+		httpErr.Debug = Debug(req.Context())
 
-		render(e, httpErr, data)
+		if render != nil {
+			render(e, httpErr)
+		}
 
 		if e.Response().Written {
 			return
@@ -121,25 +117,26 @@ func ErrorHandler[T Resolver](logger *slog.Logger, customRender ...func(T, *HTTP
 		}
 
 		res.Header().Set(HeaderContentType, contentType)
-		res.WriteHeader(status)
+		res.WriteHeader(httpErr.Status)
 
+		var err1 error
 		switch contentType {
 		case MIMEApplicationJSON:
-			indent := ""
-			if _, pretty := req.URL.Query()["pretty"]; pretty {
-				indent = defaultIndent
-			}
-			if err1 := encode.MarshalJSON(res, data, indent); err1 != nil {
-				logger.Error("error handler: write json response", "error", err1)
+			if err1 = encode.MarshalJSON(res, httpErr, indent(req)); err1 != nil {
+				err1 = fmt.Errorf("write json: %w", err1)
 			}
 		case MIMETextHTMLCharsetUTF8:
-			if err1 := tpl.Execute(res, data); err1 != nil {
-				logger.Error("error handler: write html response", "error", err1)
+			if err1 = errorTpl.Execute(res, httpErr.ToMap()); err1 != nil {
+				err1 = fmt.Errorf("write html: %w", err1)
 			}
 		default:
-			if _, err1 := res.Write(convert.StringToBytes(http.StatusText(status))); err1 != nil {
-				logger.Error("error handler: write text response", "error", err1)
+			if _, err1 := res.Write(convert.StringToBytes(httpErr.title())); err1 != nil {
+				err1 = fmt.Errorf("write text: %w", err1)
 			}
+		}
+
+		if err1 != nil {
+			logger.Error("error handler: write response", "error", err1)
 		}
 	}
 }
@@ -191,21 +188,4 @@ func RequestLoggerAttrs[T Resolver](e T, status int, err error) []slog.Attr {
 	}
 
 	return attributes
-}
-
-func stubErrorRender[T Resolver](T, *HTTPError, map[string]any) {}
-
-func errorData(err *HTTPError, internal bool) map[string]any {
-	title := http.StatusText(err.Status)
-	detail := err.Message
-
-	switch m := err.Message.(type) {
-	case error:
-		detail = m.Error()
-	}
-
-	if internal && err.Internal != nil {
-		return map[string]any{"status": err.Status, "title": title, "detail": detail, "internal": err.Internal.Error()}
-	}
-	return map[string]any{"status": err.Status, "title": title, "detail": detail}
 }

@@ -1,10 +1,10 @@
 module github.com/gowool/wo/adapter
 
-go 1.25.2
+go 1.25
 
 require (
 	github.com/danielgtaylor/huma/v2 v2.34.1
-	github.com/gowool/wo v0.0.0-20251030235343-192e7519f232
+	github.com/gowool/wo v0.0.0-20251118195307-aea6712fb8c0
 )
 
 require (
