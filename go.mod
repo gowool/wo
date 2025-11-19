@@ -19,7 +19,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/quic-go/qpack v0.6.0 // indirect
+	github.com/quic-go/qpack v0.5.1 // indirect
 	golang.org/x/crypto v0.44.0 // indirect
 	golang.org/x/mod v0.30.0 // indirect
 	golang.org/x/sync v0.18.0 // indirect
