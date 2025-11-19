@@ -60,13 +60,13 @@ type Config struct {
 	// before it expires. For example, some applications may wish to set this so
 	// there is a timeout after 20 minutes of inactivity. By default IdleTimeout
 	// is not set and there is no inactivity timeout.
-	IdleTimeout time.Duration `json:"idleTimeout,omitempty" yaml:"idleTimeout,omitempty"`
+	IdleTimeout time.Duration `json:"idleTimeout,omitempty,format:units" yaml:"idleTimeout,omitempty"`
 
 	// Lifetime controls the maximum length of time that a session is valid for
 	// before it expires. The lifetime is an 'absolute expiry' which is set when
 	// the session is first created and does not change. The default value is 24
 	// hours.
-	Lifetime time.Duration `json:"lifetime,omitempty" yaml:"lifetime,omitempty"`
+	Lifetime time.Duration `json:"lifetime,omitempty,format:units" yaml:"lifetime,omitempty"`
 
 	// HashTokenInStore controls to store the session token or a hashed version in the store.
 	HashTokenInStore bool `json:"hashTokenInStore,omitempty" yaml:"hashTokenInStore,omitempty"`

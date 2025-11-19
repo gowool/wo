@@ -61,7 +61,7 @@ type RateLimiterConfig[T wo.Resolver] struct {
 	// Expiration is the time on how long to keep records of requests in memory
 	//
 	// Default: 1 * time.Minute
-	Expiration time.Duration `env:"EXPIRATION" json:"expiration,omitempty" yaml:"expiration,omitempty"`
+	Expiration time.Duration `env:"EXPIRATION" json:"expiration,omitempty,format:units" yaml:"expiration,omitempty"`
 
 	// ExpirationFunc a function to dynamically calculate the expiration supported by the rate limiter middleware
 	//
