@@ -1,34 +1,36 @@
 package wo
 
+const (
+	CharsetUTF8         = "charset=UTF-8"
+	XMLHTTPRequest      = "XMLHttpRequest"
+	IndexPage           = "index.html"
+	StaticWildcardParam = "path"
+	DefaultMaxMemory    = 32 << 20 // 32mb
+	keyPretty           = "&pretty="
+	defaultIndent       = "  "
+)
+
 // MIME types
 const (
 	// MIMEApplicationJSON JavaScript Object Notation (JSON) https://www.rfc-editor.org/rfc/rfc8259
 	MIMEApplicationJSON                  = "application/json"
 	MIMEApplicationJavaScript            = "application/javascript"
-	MIMEApplicationJavaScriptCharsetUTF8 = MIMEApplicationJavaScript + "; " + charsetUTF8
+	MIMEApplicationJavaScriptCharsetUTF8 = MIMEApplicationJavaScript + "; " + CharsetUTF8
 	MIMEApplicationXML                   = "application/xml"
-	MIMEApplicationXMLCharsetUTF8        = MIMEApplicationXML + "; " + charsetUTF8
+	MIMEApplicationXMLCharsetUTF8        = MIMEApplicationXML + "; " + CharsetUTF8
 	MIMETextXML                          = "text/xml"
-	MIMETextXMLCharsetUTF8               = MIMETextXML + "; " + charsetUTF8
+	MIMETextXMLCharsetUTF8               = MIMETextXML + "; " + CharsetUTF8
 	MIMEApplicationForm                  = "application/x-www-form-urlencoded"
 	MIMEApplicationProtobuf              = "application/protobuf"
 	MIMEApplicationMsgpack               = "application/msgpack"
 	MIMETextHTML                         = "text/html"
-	MIMETextHTMLCharsetUTF8              = MIMETextHTML + "; " + charsetUTF8
+	MIMETextHTMLCharsetUTF8              = MIMETextHTML + "; " + CharsetUTF8
 	MIMETextPlain                        = "text/plain"
-	MIMETextPlainCharsetUTF8             = MIMETextPlain + "; " + charsetUTF8
+	MIMETextPlainCharsetUTF8             = MIMETextPlain + "; " + CharsetUTF8
 	MIMEMultipartForm                    = "multipart/form-data"
 	MIMEOctetStream                      = "application/octet-stream"
 	MIMEEventStream                      = "text/event-stream"
 	MIMEApplicationZip                   = "application/zip"
-)
-
-const (
-	charsetUTF8 = "charset=UTF-8"
-	// PROPFIND Method can be used on collection and property resources.
-	PROPFIND = "PROPFIND"
-	// REPORT Method can be used to get information about a resource, see rfc 3253
-	REPORT = "REPORT"
 )
 
 // Headers

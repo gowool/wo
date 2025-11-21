@@ -20,28 +20,26 @@ import (
 	"github.com/gowool/wo/internal/encode"
 )
 
-const (
-	IndexPage        = "index.html"
-	DefaultMaxMemory = 32 << 20 // 32mb
-	defaultIndent    = "  "
-	keyPretty        = "&pretty="
-	xmlHTTPRequest   = "XMLHttpRequest"
-)
-
 type Event struct {
 	hook.Event
 
 	response *Response
 	request  *http.Request
 
-	query url.Values
-	start time.Time
+	query     url.Values
+	start     time.Time
+	remoteIP  string
+	accepted  []string
+	languages []string
 }
 
 func (e *Event) Reset(w *Response, r *http.Request) {
 	e.response = w
 	e.request = r
+	e.remoteIP = ""
 	e.query = nil
+	e.accepted = nil
+	e.languages = nil
 	e.start = time.Now()
 }
 
@@ -104,31 +102,37 @@ func (e *Event) IsWebSocket() bool {
 
 // IsAjax returns true if the HTTP request was made with XMLHttpRequest.
 func (e *Event) IsAjax() bool {
-	return e.Request().Header.Get(HeaderXRequestedWith) == xmlHTTPRequest
+	return e.Request().Header.Get(HeaderXRequestedWith) == XMLHTTPRequest
 }
 
-// AcceptLanguage returns the value of the Accept header.
+// NegotiateFormat returns an acceptable Accept format.
+func (e *Event) NegotiateFormat(offered ...string) string {
+	return NegotiateFormat(e.Accepted(), offered...)
+}
+
+// Accept returns the value of the Accept header.
+func (e *Event) Accept() string {
+	return e.request.Header.Get(HeaderAccept)
+}
+
+func (e *Event) Accepted() []string {
+	if e.accepted == nil {
+		e.accepted = ParseAcceptHeader(e.Accept())
+	}
+	return e.accepted
+}
+
+// AcceptLanguage returns the value of the Accept-Language header.
 func (e *Event) AcceptLanguage() string {
 	return e.request.Header.Get(HeaderAcceptLanguage)
 }
 
-// AcceptedLanguages returns a slice of accepted languages from the Accept-Language header.
-func (e *Event) AcceptedLanguages() []string {
-	accepted := e.AcceptLanguage()
-	if accepted == "" {
-		return nil
+// Languages returns a slice of accepted languages from the Accept-Language header.
+func (e *Event) Languages() []string {
+	if e.languages == nil {
+		e.languages = ParseAcceptLanguageHeader(e.AcceptLanguage())
 	}
-
-	options := strings.Split(accepted, ",")
-	l := len(options)
-	languages := make([]string, l)
-
-	for i := 0; i < l; i++ {
-		locale := strings.SplitN(options[i], ";", 2)
-		languages[i] = strings.Trim(locale[0], " ")
-	}
-
-	return languages
+	return e.languages
 }
 
 // Scheme returns the HTTP protocol scheme, `http` or `https`.
@@ -252,19 +256,45 @@ func (e *Event) SetCookie(cookie *http.Cookie) {
 // Note that if you are behind reverse proxy(ies), this method returns
 // the IP of the last connecting proxy.
 func (e *Event) RemoteIP() string {
-	ip, _, _ := net.SplitHostPort(e.request.RemoteAddr)
-	parsed, _ := netip.ParseAddr(ip)
-	return parsed.StringExpanded()
+	if e.remoteIP == "" {
+		ip, _, _ := net.SplitHostPort(e.request.RemoteAddr)
+		parsed, _ := netip.ParseAddr(ip)
+		e.remoteIP = parsed.StringExpanded()
+	}
+	return e.remoteIP
 }
 
 // Response writers
 // -------------------------------------------------------------------
 
-func (e *Event) setResponseHeaderIfEmpty(key, value string) {
-	header := e.response.Header()
-	if header.Get(key) == "" {
-		header.Set(key, value)
+// Negotiate calls different Render according to acceptable Accept format
+func (e *Event) Negotiate(status int, data any, offered ...string) error {
+	ct := e.NegotiateFormat(offered...)
+
+	switch data := data.(type) {
+	case []byte:
+		if ct != "" {
+			return e.Blob(status, ct, data)
+		}
+	case io.Reader:
+		if ct != "" {
+			return e.Stream(status, ct, data)
+		}
+	default:
+		switch ct {
+		case MIMEApplicationJSON:
+			return e.JSON(status, data)
+		case MIMEApplicationXML, MIMETextXML:
+			SetHeaderIfMissing(e.response, HeaderContentType, ct)
+			return e.XML(status, data)
+		case MIMETextHTML, MIMETextHTMLCharsetUTF8:
+			return e.HTML(status, fmt.Sprintf("%v", data))
+		case MIMETextPlain, MIMETextPlainCharsetUTF8:
+			return e.String(status, fmt.Sprintf("%v", data))
+		}
 	}
+
+	return ErrNotAcceptable
 }
 
 // HTML writes an HTML response.
@@ -283,7 +313,7 @@ func (e *Event) String(status int, data string) error {
 }
 
 func (e *Event) jsonPBlob(status int, callback string, i any) error {
-	e.setResponseHeaderIfEmpty(HeaderContentType, MIMEApplicationJavaScriptCharsetUTF8)
+	SetHeaderIfMissing(e.response, HeaderContentType, MIMEApplicationJavaScriptCharsetUTF8)
 	e.response.WriteHeader(status)
 
 	if _, err := e.response.Write(convert.StringToBytes(callback + "(")); err != nil {
@@ -301,7 +331,7 @@ func (e *Event) jsonPBlob(status int, callback string, i any) error {
 }
 
 func (e *Event) json(status int, i any, indent string) error {
-	e.setResponseHeaderIfEmpty(HeaderContentType, MIMEApplicationJSON)
+	SetHeaderIfMissing(e.response, HeaderContentType, MIMEApplicationJSON)
 	e.response.WriteHeader(status)
 
 	return encode.MarshalJSON(e.response, i, indent)
@@ -330,7 +360,7 @@ func (e *Event) JSONP(status int, callback string, i any) error {
 // JSONPBlob sends a JSONP blob response with status code. It uses `callback`
 // to construct the JSONP payload.
 func (e *Event) JSONPBlob(status int, callback string, b []byte) error {
-	e.setResponseHeaderIfEmpty(HeaderContentType, MIMEApplicationJavaScriptCharsetUTF8)
+	SetHeaderIfMissing(e.response, HeaderContentType, MIMEApplicationJavaScriptCharsetUTF8)
 	e.response.WriteHeader(status)
 
 	if _, err := e.response.Write(convert.StringToBytes(callback + "(")); err != nil {
@@ -344,7 +374,7 @@ func (e *Event) JSONPBlob(status int, callback string, b []byte) error {
 }
 
 func (e *Event) xml(status int, i any, indent string) error {
-	e.setResponseHeaderIfEmpty(HeaderContentType, MIMEApplicationXMLCharsetUTF8)
+	SetHeaderIfMissing(e.response, HeaderContentType, MIMEApplicationXMLCharsetUTF8)
 	e.response.WriteHeader(status)
 
 	enc := xml.NewEncoder(e.response)
@@ -368,7 +398,7 @@ func (e *Event) XMLPretty(status int, i any, indent string) error {
 
 // XMLBlob sends an XML blob response with status code.
 func (e *Event) XMLBlob(status int, b []byte) error {
-	e.setResponseHeaderIfEmpty(HeaderContentType, MIMEApplicationXMLCharsetUTF8)
+	SetHeaderIfMissing(e.response, HeaderContentType, MIMEApplicationXMLCharsetUTF8)
 	e.response.WriteHeader(status)
 
 	if _, err := e.response.Write(convert.StringToBytes(xml.Header)); err != nil {
@@ -380,7 +410,7 @@ func (e *Event) XMLBlob(status int, b []byte) error {
 
 // Blob writes a blob (bytes slice) response.
 func (e *Event) Blob(status int, contentType string, b []byte) error {
-	e.setResponseHeaderIfEmpty(HeaderContentType, contentType)
+	SetHeaderIfMissing(e.response, HeaderContentType, contentType)
 	e.response.WriteHeader(status)
 	_, err := e.response.Write(b)
 	return err
@@ -388,7 +418,7 @@ func (e *Event) Blob(status int, contentType string, b []byte) error {
 
 // Stream streams the specified reader into the response.
 func (e *Event) Stream(status int, contentType string, reader io.Reader) error {
-	e.response.Header().Set(HeaderContentType, contentType)
+	SetHeaderIfMissing(e.response, HeaderContentType, contentType)
 	e.response.WriteHeader(status)
 	_, err := io.Copy(e.response, reader)
 	return err

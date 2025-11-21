@@ -10,8 +10,6 @@ import (
 	"strings"
 )
 
-const StaticWildcardParam = "path"
-
 // Attachment sends a response as attachment, prompting client to save the file.
 func (e *Event) Attachment(fsys fs.FS, file, name string) error {
 	return e.contentDisposition(fsys, file, name, "attachment")
@@ -150,10 +148,4 @@ func safeRedirectPath(path string) string {
 		path = "/" + strings.TrimLeft(path, `/\`)
 	}
 	return path
-}
-
-func SetHeaderIfMissing(res http.ResponseWriter, key string, value string) {
-	if _, ok := res.Header()[key]; !ok {
-		res.Header().Set(key, value)
-	}
 }
