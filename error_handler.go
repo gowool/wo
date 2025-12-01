@@ -49,9 +49,13 @@ var errorTpl = template.Must(template.New("error_template").Parse(errorTemplate)
 
 type HTTPErrorHandler[T Resolver] func(T, error)
 
-func ErrorHandler[T Resolver](render func(T, *HTTPError), logger *slog.Logger) HTTPErrorHandler[T] {
+func ErrorHandler[T Resolver](render func(T, *HTTPError), mapper func(error) *HTTPError, logger *slog.Logger) HTTPErrorHandler[T] {
 	if logger == nil {
 		logger = slog.New(slog.DiscardHandler)
+	}
+
+	if mapper == nil {
+		mapper = AsHTTPError
 	}
 
 	return func(e T, err error) {
@@ -72,7 +76,7 @@ func ErrorHandler[T Resolver](render func(T, *HTTPError), logger *slog.Logger) H
 			return
 		}
 
-		httpErr := AsHTTPError(err)
+		httpErr := mapper(err)
 		if httpErr == nil {
 			httpErr = ErrInternalServerError.WithInternal(err)
 		}

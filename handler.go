@@ -9,7 +9,12 @@ func WrapMiddleware[T Resolver](m func(http.Handler) http.Handler) func(T) error
 	return func(e T) (err error) {
 		m(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			e.SetRequest(r)
-			e.SetResponse(NewResponse(w))
+			switch resp := w.(type) {
+			case *Response:
+				e.SetResponse(resp)
+			default:
+				e.SetResponse(NewResponse(w))
+			}
 			err = e.Next()
 		})).ServeHTTP(e.Response(), e.Request())
 		return
