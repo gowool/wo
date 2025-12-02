@@ -11,7 +11,7 @@ func MarshalJSON(out io.Writer, in any, indent string) error {
 	enc := json.NewEncoder(out)
 
 	if indent != "" {
-		return enc.SetIndent("", indent)
+		enc.SetIndent("", indent)
 	}
 
 	return enc.Encode(in)
