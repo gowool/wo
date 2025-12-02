@@ -7,7 +7,7 @@ tool github.com/tinylib/msgp
 require (
 	github.com/gowool/hook v0.0.0-20251021231216-e5c093228588
 	github.com/invopop/validation v0.8.0
-	github.com/quic-go/quic-go v0.57.0
+	github.com/quic-go/quic-go v0.57.1
 	github.com/stretchr/testify v1.11.1
 	github.com/tinylib/msgp v1.5.0
 	golang.org/x/net v0.47.0
