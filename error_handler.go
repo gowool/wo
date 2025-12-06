@@ -131,7 +131,7 @@ func ErrorHandler[T Resolver](render func(T, *HTTPError), mapper func(error) *HT
 				err1 = fmt.Errorf("write html: %w", err1)
 			}
 		default:
-			if _, err1 := res.Write(convert.StringToBytes(httpErr.title())); err1 != nil {
+			if _, err1 = res.Write(convert.StringToBytes(httpErr.title())); err1 != nil {
 				err1 = fmt.Errorf("write text: %w", err1)
 			}
 		}

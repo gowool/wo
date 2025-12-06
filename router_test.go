@@ -435,6 +435,7 @@ func TestRouterBuildInternalError(t *testing.T) {
 	router := New[*Event](eventFactory, errorHandler)
 
 	// Manually add an invalid child type to test error handling
+	//lint:ignore QF1008 This is intentional
 	router.RouterGroup.children = append(router.RouterGroup.children, "invalid")
 
 	// This should return an error when trying to build

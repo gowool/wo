@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -366,20 +365,18 @@ func TestRateLimiter_DynamicExpirationFunc(t *testing.T) {
 	t.Run("uses dynamic expiration function", func(t *testing.T) {
 		expirationFunc := func(e *wo.Event) time.Duration {
 			if e.Request().Header.Get("X-Long-Session") == "true" {
-				return 2 * time.Second
+				return 4 * time.Second
 			}
-			return 500 * time.Millisecond
+			return 1 * time.Second
 		}
 
-		var timeValue atomic.Pointer[time.Time]
 		now := time.Now()
-		timeValue.Store(&now)
 
 		rl := RateLimiter(RateLimiterConfig[*wo.Event]{
 			Max:            1,
 			ExpirationFunc: expirationFunc,
 			TimestampFunc: func() uint32 {
-				return uint32(timeValue.Load().Unix())
+				return uint32(now.Unix())
 			},
 		})
 
@@ -394,8 +391,7 @@ func TestRateLimiter_DynamicExpirationFunc(t *testing.T) {
 		require.NoError(t, err1)
 
 		// Wait a short time, should still be blocked
-		now = timeValue.Load().Add(600 * time.Millisecond)
-		timeValue.Store(&now)
+		now = now.Add(1 * time.Second)
 		e1b := &wo.Event{}
 		e1b.Reset(wo.NewResponse(httptest.NewRecorder()), req1)
 		err1b := rl(e1b)
@@ -411,7 +407,7 @@ func TestRateLimiter_DynamicExpirationFunc(t *testing.T) {
 		require.NoError(t, err2)
 
 		// Wait for expiration, should be allowed again
-		now = now.Add(600 * time.Millisecond)
+		now = now.Add(3 * time.Second)
 		e2b := &wo.Event{}
 		e2b.Reset(wo.NewResponse(httptest.NewRecorder()), req2)
 		err2b := rl(e2b)
@@ -814,16 +810,14 @@ func TestRateLimiter_MissingLinesCoverage(t *testing.T) {
 	})
 
 	t.Run("Full window expiration reset", func(t *testing.T) {
-		var timeValue atomic.Pointer[time.Time]
 		now := time.Now()
-		timeValue.Store(&now)
 
 		// Test the specific window reset logic when elapsed >= expiration
 		rl := RateLimiter(RateLimiterConfig[*wo.Event]{
 			Max:        1,
-			Expiration: 100 * time.Millisecond, // Very short expiration
+			Expiration: 1 * time.Second, // Very short expiration
 			TimestampFunc: func() uint32 {
-				return uint32(timeValue.Load().Unix())
+				return uint32(now.Unix())
 			},
 		})
 
@@ -833,8 +827,7 @@ func TestRateLimiter_MissingLinesCoverage(t *testing.T) {
 		require.NoError(t, err1)
 
 		// Wait for expiration
-		now = timeValue.Load().Add(200 * time.Millisecond)
-		timeValue.Store(&now)
+		now = now.Add(2 * time.Second)
 
 		// Second request should work and reset the window
 		e2 := newRLEvent()

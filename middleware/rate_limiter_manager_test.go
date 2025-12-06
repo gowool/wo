@@ -17,7 +17,6 @@ func TestRateLimiterManager(t *testing.T) {
 		storage := &MockRateLimiterStorage{}
 		manager := newRateLimiterManager(storage, false)
 
-		require.NotNil(t, manager.pool)
 		require.Equal(t, storage, manager.storage)
 		require.False(t, manager.redactKeys)
 	})

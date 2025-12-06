@@ -111,13 +111,14 @@ func TestEvent_SettersAndGetters(t *testing.T) {
 }
 
 func TestEvent_Context(t *testing.T) {
+	type testKey struct{}
 	event, _, req := newTestEventForEventTest()
-	ctx := context.WithValue(req.Context(), "key", "value")
+	ctx := context.WithValue(req.Context(), testKey{}, "value")
 	req = req.WithContext(ctx)
 	event.SetRequest(req)
 
 	assert.Equal(t, ctx, event.Context())
-	assert.Equal(t, "value", event.Context().Value("key"))
+	assert.Equal(t, "value", event.Context().Value(testKey{}))
 }
 
 func TestEvent_StartTime(t *testing.T) {

@@ -1,8 +1,6 @@
 package wo
 
 import (
-	"errors"
-	"io"
 	"io/fs"
 	"net/http"
 	"net/http/httptest"
@@ -185,28 +183,6 @@ func TestEvent_FileFS(t *testing.T) {
 			}
 		})
 	}
-}
-
-type mockNonSeekerFile struct {
-	data []byte
-	pos  int
-}
-
-func (f *mockNonSeekerFile) Read(p []byte) (n int, err error) {
-	if f.pos >= len(f.data) {
-		return 0, io.EOF
-	}
-	n = copy(p, f.data[f.pos:])
-	f.pos += n
-	return n, nil
-}
-
-func (f *mockNonSeekerFile) Stat() (fs.FileInfo, error) {
-	return nil, errors.New("not implemented")
-}
-
-func (f *mockNonSeekerFile) Close() error {
-	return nil
 }
 
 // TestEvent_StaticFS tests the StaticFS method
