@@ -29,7 +29,6 @@ func TestRouterCreation(t *testing.T) {
 	assert.NotNil(t, router.patterns)
 	assert.NotNil(t, router.eventFactory)
 	assert.NotNil(t, router.errorHandler)
-	assert.NotNil(t, router.responsePool)
 
 	// Check that patterns map is empty
 	assert.Empty(t, router.patterns)
