@@ -153,7 +153,7 @@ func TestEvent_WrittenAndStatus(t *testing.T) {
 
 	// Write something
 	resp.WriteHeader(http.StatusOK)
-	resp.Write([]byte("test"))
+	_, _ = resp.Write([]byte("test"))
 
 	assert.True(t, event.Written())
 	assert.Equal(t, http.StatusOK, resp.Status)
@@ -1010,7 +1010,7 @@ func TestEvent_MultipartForm(t *testing.T) {
 
 	part, err := writer.CreateFormFile("file", "test.txt")
 	require.NoError(t, err)
-	part.Write([]byte("file content"))
+	_, _ = part.Write([]byte("file content"))
 
 	err = writer.WriteField("name", "John")
 	require.NoError(t, err)
@@ -1036,7 +1036,7 @@ func TestEvent_FormFile(t *testing.T) {
 
 	part, err := writer.CreateFormFile("file", "test.txt")
 	require.NoError(t, err)
-	part.Write([]byte("file content"))
+	_, _ = part.Write([]byte("file content"))
 
 	err = writer.Close()
 	require.NoError(t, err)

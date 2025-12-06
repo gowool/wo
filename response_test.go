@@ -244,7 +244,7 @@ func TestResponse_Write(t *testing.T) {
 			called = true
 		})
 
-		resp.Write([]byte("test"))
+		_, _ = resp.Write([]byte("test"))
 
 		assert.True(t, called)
 	})
@@ -258,7 +258,7 @@ func TestResponse_Write(t *testing.T) {
 		resp.After(func() { order = append(order, 2) })
 		resp.After(func() { order = append(order, 3) })
 
-		resp.Write([]byte("test"))
+		_, _ = resp.Write([]byte("test"))
 
 		assert.Equal(t, []int{1, 2, 3}, order)
 	})
@@ -518,7 +518,7 @@ func TestResponse_BufferingWorkflow(t *testing.T) {
 
 	// Write data (should be buffered)
 	data := []byte("buffered data")
-	resp.Write(data)
+	_, _ = resp.Write(data)
 
 	// Verify buffer contains data
 	assert.Equal(t, data, resp.Buffer())

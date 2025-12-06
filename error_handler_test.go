@@ -164,7 +164,7 @@ func TestErrorHandler_WithCustomRender(t *testing.T) {
 	customRender := func(e *ErrorHandlerTestEvent, httpErr *HTTPError) {
 		renderCalled = true
 		e.Response().WriteHeader(httpErr.Status)
-		e.Response().Write([]byte("custom rendered"))
+		_, _ = e.Response().Write([]byte("custom rendered"))
 	}
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)

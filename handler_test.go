@@ -90,7 +90,7 @@ func TestWrapMiddleware(t *testing.T) {
 			middleware: func(next http.Handler) http.Handler {
 				return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 					w.WriteHeader(http.StatusAccepted)
-					w.Write([]byte("middleware response"))
+					_, _ = w.Write([]byte("middleware response"))
 				})
 			},
 			expectedStatus:  http.StatusAccepted,
@@ -194,7 +194,7 @@ func TestWrapHandler(t *testing.T) {
 			name: "handler executes successfully",
 			handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusOK)
-				w.Write([]byte("handler response"))
+				_, _ = w.Write([]byte("handler response"))
 			}),
 			expectedStatus: http.StatusOK,
 			expectedBody:   "handler response",
@@ -203,7 +203,7 @@ func TestWrapHandler(t *testing.T) {
 			name: "handler with different status",
 			handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusCreated)
-				w.Write([]byte("created"))
+				_, _ = w.Write([]byte("created"))
 			}),
 			expectedStatus: http.StatusCreated,
 			expectedBody:   "created",
@@ -211,7 +211,7 @@ func TestWrapHandler(t *testing.T) {
 		{
 			name: "handler without explicit status",
 			handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.Write([]byte("no status"))
+				_, _ = w.Write([]byte("no status"))
 			}),
 			expectedStatus: http.StatusOK,
 			expectedBody:   "no status",
@@ -253,7 +253,7 @@ func TestWrapHandlerWithNilHandler(t *testing.T) {
 
 	// Execute the handler - this should panic due to nil handler
 	assert.Panics(t, func() {
-		handlerFunc(event)
+		_ = handlerFunc(event)
 	}, "WrapHandler with nil handler should panic")
 }
 
@@ -460,7 +460,7 @@ func TestWrapMiddlewareIntegration(t *testing.T) {
 	finalHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Final", "true")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("success"))
+		_, _ = w.Write([]byte("success"))
 	})
 
 	req := httptest.NewRequest("GET", "/", nil)

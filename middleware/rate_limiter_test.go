@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -370,13 +371,15 @@ func TestRateLimiter_DynamicExpirationFunc(t *testing.T) {
 			return 500 * time.Millisecond
 		}
 
+		var timeValue atomic.Pointer[time.Time]
 		now := time.Now()
+		timeValue.Store(&now)
 
 		rl := RateLimiter(RateLimiterConfig[*wo.Event]{
 			Max:            1,
 			ExpirationFunc: expirationFunc,
 			TimestampFunc: func() uint32 {
-				return uint32(now.Unix())
+				return uint32(timeValue.Load().Unix())
 			},
 		})
 
@@ -391,7 +394,8 @@ func TestRateLimiter_DynamicExpirationFunc(t *testing.T) {
 		require.NoError(t, err1)
 
 		// Wait a short time, should still be blocked
-		now = now.Add(600 * time.Millisecond)
+		now = timeValue.Load().Add(600 * time.Millisecond)
+		timeValue.Store(&now)
 		e1b := &wo.Event{}
 		e1b.Reset(wo.NewResponse(httptest.NewRecorder()), req1)
 		err1b := rl(e1b)
@@ -810,14 +814,16 @@ func TestRateLimiter_MissingLinesCoverage(t *testing.T) {
 	})
 
 	t.Run("Full window expiration reset", func(t *testing.T) {
+		var timeValue atomic.Pointer[time.Time]
 		now := time.Now()
+		timeValue.Store(&now)
 
 		// Test the specific window reset logic when elapsed >= expiration
 		rl := RateLimiter(RateLimiterConfig[*wo.Event]{
 			Max:        1,
 			Expiration: 100 * time.Millisecond, // Very short expiration
 			TimestampFunc: func() uint32 {
-				return uint32(now.Unix())
+				return uint32(timeValue.Load().Unix())
 			},
 		})
 
@@ -827,7 +833,8 @@ func TestRateLimiter_MissingLinesCoverage(t *testing.T) {
 		require.NoError(t, err1)
 
 		// Wait for expiration
-		now = now.Add(200 * time.Millisecond)
+		now = timeValue.Load().Add(200 * time.Millisecond)
+		timeValue.Store(&now)
 
 		// Second request should work and reset the window
 		e2 := newRLEvent()
