@@ -370,9 +370,14 @@ func TestRateLimiter_DynamicExpirationFunc(t *testing.T) {
 			return 500 * time.Millisecond
 		}
 
+		now := time.Now()
+
 		rl := RateLimiter(RateLimiterConfig[*wo.Event]{
 			Max:            1,
 			ExpirationFunc: expirationFunc,
+			TimestampFunc: func() uint32 {
+				return uint32(now.Unix())
+			},
 		})
 
 		// Long session request
@@ -386,7 +391,7 @@ func TestRateLimiter_DynamicExpirationFunc(t *testing.T) {
 		require.NoError(t, err1)
 
 		// Wait a short time, should still be blocked
-		time.Sleep(600 * time.Millisecond)
+		now = now.Add(600 * time.Millisecond)
 		e1b := &wo.Event{}
 		e1b.Reset(wo.NewResponse(httptest.NewRecorder()), req1)
 		err1b := rl(e1b)
@@ -402,7 +407,7 @@ func TestRateLimiter_DynamicExpirationFunc(t *testing.T) {
 		require.NoError(t, err2)
 
 		// Wait for expiration, should be allowed again
-		time.Sleep(600 * time.Millisecond)
+		now = now.Add(600 * time.Millisecond)
 		e2b := &wo.Event{}
 		e2b.Reset(wo.NewResponse(httptest.NewRecorder()), req2)
 		err2b := rl(e2b)
@@ -805,10 +810,15 @@ func TestRateLimiter_MissingLinesCoverage(t *testing.T) {
 	})
 
 	t.Run("Full window expiration reset", func(t *testing.T) {
+		now := time.Now()
+
 		// Test the specific window reset logic when elapsed >= expiration
 		rl := RateLimiter(RateLimiterConfig[*wo.Event]{
 			Max:        1,
 			Expiration: 100 * time.Millisecond, // Very short expiration
+			TimestampFunc: func() uint32 {
+				return uint32(now.Unix())
+			},
 		})
 
 		// First request
@@ -817,7 +827,7 @@ func TestRateLimiter_MissingLinesCoverage(t *testing.T) {
 		require.NoError(t, err1)
 
 		// Wait for expiration
-		time.Sleep(200 * time.Millisecond)
+		now = now.Add(200 * time.Millisecond)
 
 		// Second request should work and reset the window
 		e2 := newRLEvent()
