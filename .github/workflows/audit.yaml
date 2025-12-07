@@ -40,9 +40,14 @@ jobs:
       - name: Run tests
         run: go test -race -v -coverprofile=coverage.txt --covermode=atomic ./...
 
+      - name: Run tests (adapter)
+        working-directory: adapter
+        run: go test -race -v -coverprofile=adapter_coverage.txt --covermode=atomic ./...
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
+          files: ./coverage.txt,./adapter/adapter_coverage.txt
