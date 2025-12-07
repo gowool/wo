@@ -284,9 +284,9 @@ func TestCopy(t *testing.T) {
 			assert.Equal(t, tt.expected, result)
 
 			// Test slice independence by checking that they don't share the same underlying array
-			if tt.input != nil && len(tt.input) > 0 {
+			if len(tt.input) > 0 {
 				// Append to result - should not affect original
-				result = append(result, 999)
+				result = append(result, 999)              //nolint:ineffassign,staticcheck
 				assert.Len(t, tt.input, len(tt.expected)) // Original length unchanged
 			}
 		})
@@ -301,7 +301,7 @@ func TestCopy_DifferentTypes(t *testing.T) {
 
 		assert.Equal(t, input, result)
 		// Test independence
-		result = append(result, "new")
+		result = append(result, "new")                           //nolint:ineffassign,staticcheck
 		assert.Equal(t, []string{"hello", "world", "go"}, input) // Original unchanged
 	})
 
@@ -320,8 +320,8 @@ func TestCopy_DifferentTypes(t *testing.T) {
 
 		assert.Equal(t, input, result)
 		// Test independence
-		result = append(result, Person{Name: "New", Age: 99})
-		assert.Len(t, input, 2) // Original length unchanged
+		result = append(result, Person{Name: "New", Age: 99}) //nolint:ineffassign
+		assert.Len(t, input, 2)                               // Original length unchanged
 
 		// Verify deep copy for structs
 		result[0].Name = "Modified"
@@ -337,8 +337,8 @@ func TestCopy_DifferentTypes(t *testing.T) {
 
 		assert.Equal(t, pointers, result)
 		// Test independence
-		result = append(result, &values[0])
-		assert.Len(t, pointers, 3) // Original length unchanged
+		result = append(result, &values[0]) //nolint:ineffassign
+		assert.Len(t, pointers, 3)          // Original length unchanged
 
 		// Note: The pointers themselves are copied, but they point to the same data
 		*result[0] = 99
@@ -377,8 +377,8 @@ func TestCopy_DifferentTypes(t *testing.T) {
 
 		assert.Equal(t, input, result)
 		// Test independence
-		result = append(result, "new")
-		assert.Len(t, input, 4) // Original length unchanged
+		result = append(result, "new") //nolint:ineffassign,staticcheck
+		assert.Len(t, input, 4)        // Original length unchanged
 	})
 
 	t.Run("bytes", func(t *testing.T) {
@@ -438,12 +438,12 @@ func TestCopy_Behavior(t *testing.T) {
 		}
 
 		// Copy should work efficiently
-		copy := Copy(original)
+		c := Copy(original)
 
-		assert.Len(t, copy, size)
-		assert.Equal(t, original, copy)
+		assert.Len(t, c, size)
+		assert.Equal(t, original, c)
 		// Test independence by modifying copy
-		copy[0] = 999
+		c[0] = 999
 		assert.Equal(t, 0, original[0]) // Original should be unchanged
 	})
 }
@@ -506,8 +506,8 @@ func TestConcurrentUsage(t *testing.T) {
 				result := Copy(input)
 				assert.Equal(t, input, result)
 				// Test independence
-				result = append(result, 999)
-				assert.Len(t, input, 10) // Original length unchanged
+				result = append(result, 999) //nolint:ineffassign,staticcheck
+				assert.Len(t, input, 10)     // Original length unchanged
 				done <- true
 			}()
 		}
