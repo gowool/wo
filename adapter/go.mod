@@ -4,10 +4,14 @@ go 1.25
 
 require (
 	github.com/danielgtaylor/huma/v2 v2.34.1
-	github.com/gowool/wo v0.0.0-20251119013823-557077a598b4
+	github.com/gowool/wo v0.0.0-20251207150330-61138de1b9bd
+	github.com/stretchr/testify v1.11.1
 )
 
 require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gowool/hook v0.0.0-20251021231216-e5c093228588 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

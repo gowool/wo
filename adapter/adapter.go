@@ -34,7 +34,8 @@ func (a *Adapter[R]) Handle(op *huma.Operation, handler func(huma.Context)) {
 		ctx.reset(op, e)
 
 		defer func() {
-			ctx.reset(nil, nil)
+			var r R
+			ctx.reset(nil, r)
 			a.pool.Put(ctx)
 		}()
 

@@ -12,7 +12,7 @@ import (
 	"github.com/gowool/wo"
 )
 
-var _ huma.Context = (*woContext)(nil)
+var _ huma.Context = (*woContext[*wo.Event])(nil)
 
 type woContext[R wo.Resolver] struct {
 	op    *huma.Operation
