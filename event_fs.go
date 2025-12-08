@@ -28,8 +28,6 @@ func (e *Event) contentDisposition(fsys fs.FS, file, name, dispositionType strin
 }
 
 // FileFS serves the specified filename from fsys.
-//
-// It is similar to [echo.FileFS] for consistency with earlier versions.
 func (e *Event) FileFS(fsys fs.FS, filename string) error {
 	f, err := fsys.Open(filename)
 	if err != nil {
