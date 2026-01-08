@@ -63,6 +63,10 @@ func (e *Event) Context() context.Context {
 	return e.request.Context()
 }
 
+func (e *Event) Debug() bool {
+	return Debug(e.Context())
+}
+
 func (e *Event) StartTime() time.Time {
 	return e.start
 }
