@@ -129,6 +129,45 @@ func TestEvent_StartTime(t *testing.T) {
 	assert.True(t, start.After(time.Now().Add(-time.Second)))
 }
 
+func TestEvent_Debug(t *testing.T) {
+	tests := []struct {
+		name     string
+		setupCtx func(context.Context) context.Context
+		expected bool
+	}{
+		{
+			name:     "debug not set returns false",
+			setupCtx: func(ctx context.Context) context.Context { return ctx },
+			expected: false,
+		},
+		{
+			name: "debug set to true returns true",
+			setupCtx: func(ctx context.Context) context.Context {
+				return WithDebug(ctx, true)
+			},
+			expected: true,
+		},
+		{
+			name: "debug set to false returns false",
+			setupCtx: func(ctx context.Context) context.Context {
+				return WithDebug(ctx, false)
+			},
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			event, _, req := newTestEventForEventTest()
+			ctx := tt.setupCtx(req.Context())
+			req = req.WithContext(ctx)
+			event.SetRequest(req)
+
+			assert.Equal(t, tt.expected, event.Debug())
+		})
+	}
+}
+
 func TestEvent_Flush(t *testing.T) {
 	rec := httptest.NewRecorder()
 	resp := NewResponse(rec)
