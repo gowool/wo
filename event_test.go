@@ -168,6 +168,59 @@ func TestEvent_Debug(t *testing.T) {
 	}
 }
 
+func TestEvent_SetDebug(t *testing.T) {
+	tests := []struct {
+		name       string
+		setDebug   bool
+		expected   bool
+		initialSet bool
+	}{
+		{
+			name:       "set debug to true",
+			setDebug:   true,
+			expected:   true,
+			initialSet: false,
+		},
+		{
+			name:       "set debug to false",
+			setDebug:   false,
+			expected:   false,
+			initialSet: false,
+		},
+		{
+			name:       "toggle debug from true to false",
+			setDebug:   false,
+			expected:   false,
+			initialSet: true,
+		},
+		{
+			name:       "toggle debug from false to true",
+			setDebug:   true,
+			expected:   true,
+			initialSet: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			event, _, req := newTestEventForEventTest()
+
+			// Optionally set initial debug state
+			if tt.initialSet {
+				ctx := WithDebug(req.Context(), true)
+				req = req.WithContext(ctx)
+				event.SetRequest(req)
+			}
+
+			// Set debug flag
+			event.SetDebug(tt.setDebug)
+
+			// Verify debug state is updated
+			assert.Equal(t, tt.expected, event.Debug())
+		})
+	}
+}
+
 func TestEvent_Flush(t *testing.T) {
 	rec := httptest.NewRecorder()
 	resp := NewResponse(rec)
