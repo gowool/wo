@@ -1093,3 +1093,58 @@ func TestEvent_FormFile(t *testing.T) {
 	_, err = event.FormFile("nonexistent")
 	assert.Error(t, err)
 }
+
+func TestEvent_SetValue_Value(t *testing.T) {
+	tests := []struct {
+		name     string
+		key      any
+		value    any
+		expected any
+	}{
+		{
+			name:     "set string value",
+			key:      "testKey",
+			value:    "testValue",
+			expected: "testValue",
+		},
+		{
+			name:     "set int value",
+			key:      "numberKey",
+			value:    42,
+			expected: 42,
+		},
+		{
+			name:     "set debug value",
+			key:      ctxDebugKey{},
+			value:    true,
+			expected: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			r := httptest.NewRequest("GET", "/", nil)
+
+			e := &Event{}
+			e.Reset(&Response{ResponseWriter: w}, r)
+
+			e.SetValue(tt.key, tt.value)
+			assert.Equal(t, tt.expected, e.Value(tt.key))
+		})
+	}
+}
+
+// Benchmark tests
+func BenchmarkEvent_SetValue(b *testing.B) {
+	w := httptest.NewRecorder()
+	r := httptest.NewRequest("GET", "/", nil)
+
+	e := &Event{}
+	e.Reset(&Response{ResponseWriter: w}, r)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		e.SetValue("benchmarkKey", "benchmarkValue")
+	}
+}

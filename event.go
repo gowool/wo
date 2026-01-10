@@ -63,6 +63,18 @@ func (e *Event) Context() context.Context {
 	return e.request.Context()
 }
 
+func (e *Event) SetContext(ctx context.Context) {
+	e.SetRequest(e.Request().WithContext(ctx))
+}
+
+func (e *Event) SetValue(key, value any) {
+	e.SetContext(context.WithValue(e.Context(), key, value))
+}
+
+func (e *Event) Value(key any) any {
+	return e.Context().Value(key)
+}
+
 func (e *Event) Debug() bool {
 	return Debug(e.Context())
 }
