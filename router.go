@@ -174,11 +174,11 @@ func (r *Router[T]) build(mux *http.ServeMux, group *RouterGroup[T], parents []*
 				}
 			}
 
-			r.patterns[pattern] = struct{}{}
-
 			if v.Method != "" {
 				pattern = v.Method + " " + pattern
 			}
+
+			r.patterns[pattern] = struct{}{}
 
 			mux.HandleFunc(pattern, func(_ http.ResponseWriter, req *http.Request) {
 				event := req.Context().Value(ctxEventKey{}).(T)

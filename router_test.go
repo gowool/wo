@@ -73,8 +73,8 @@ func TestRouterPatterns(t *testing.T) {
 
 	// Should contain the route patterns (order may vary)
 	assert.Len(t, patterns, 2)
-	assert.Contains(t, patterns, "/users")
-	assert.Contains(t, patterns, "/posts")
+	assert.Contains(t, patterns, "GET /users")
+	assert.Contains(t, patterns, "POST /posts")
 }
 
 // TestRouterPreFunc tests binding anonymous middleware functions to preHook
@@ -636,8 +636,9 @@ func TestRouterPatternGeneration(t *testing.T) {
 	}
 
 	// Should contain the full paths (HTTP method is added as prefix for routes with methods)
-	assert.Contains(t, patterns, "/api/v1/users")     // May be with or without method prefix
-	assert.Contains(t, patterns, "/api/v1/users/:id") // May be with or without method prefix
+	assert.Contains(t, patterns, "GET /api/v1/users")
+	assert.Contains(t, patterns, "POST /api/v1/users")
+	assert.Contains(t, patterns, "GET /api/v1/users/:id")
 
 	// Log the actual patterns for debugging
 	t.Logf("Actual patterns found: %v", patterns)
