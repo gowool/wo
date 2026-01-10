@@ -101,14 +101,14 @@ func ErrorHandler[T Resolver](render func(T, *HTTPError), mapper func(error) *HT
 
 		if render != nil {
 			render(e, httpErr)
-		}
 
-		if e.Response().Written {
-			return
-		}
+			if e.Response().Written {
+				return
+			}
 
-		req = e.Request()
-		res = e.Response()
+			req = e.Request()
+			res = e.Response()
+		}
 
 		contentType := NegotiateFormat(
 			ParseAcceptHeader(req.Header.Get(HeaderAccept)),
