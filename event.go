@@ -79,6 +79,10 @@ func (e *Event) Debug() bool {
 	return Debug(e.Context())
 }
 
+func (e *Event) SetDebug(debug bool) {
+	e.SetContext(WithDebug(e.Context(), debug))
+}
+
 func (e *Event) StartTime() time.Time {
 	return e.start
 }
