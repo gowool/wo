@@ -34,13 +34,13 @@ func (s SameSite) HTTP() http.SameSite {
 }
 
 type Cookie struct {
-	Name        string   `json:"name,omitempty" yaml:"name,omitempty"`
-	Domain      string   `json:"domain,omitempty" yaml:"domain,omitempty"`
-	Path        string   `json:"path,omitempty" yaml:"path,omitempty"`
-	Persist     bool     `json:"persist,omitempty" yaml:"persist,omitempty"`
-	Secure      bool     `json:"secure,omitempty" yaml:"secure,omitempty"`
-	Partitioned bool     `json:"partitioned,omitempty" yaml:"partitioned,omitempty"`
-	SameSite    SameSite `json:"sameSite,omitempty" yaml:"sameSite,omitempty"`
+	Name        string   `env:"NAME" json:"name,omitempty" yaml:"name,omitempty"`
+	Domain      string   `env:"DOMAIN" json:"domain,omitempty" yaml:"domain,omitempty"`
+	Path        string   `env:"PATH" json:"path,omitempty" yaml:"path,omitempty"`
+	Persist     bool     `env:"PERSIST" json:"persist,omitempty" yaml:"persist,omitempty"`
+	Secure      bool     `env:"SECURE" json:"secure,omitempty" yaml:"secure,omitempty"`
+	Partitioned bool     `env:"PARTITIONED" json:"partitioned,omitempty" yaml:"partitioned,omitempty"`
+	SameSite    SameSite `env:"SAME_SITE" json:"sameSite,omitempty" yaml:"sameSite,omitempty"`
 }
 
 func (c *Cookie) SetDefaults() {
@@ -60,19 +60,19 @@ type Config struct {
 	// before it expires. For example, some applications may wish to set this so
 	// there is a timeout after 20 minutes of inactivity. By default IdleTimeout
 	// is not set and there is no inactivity timeout.
-	IdleTimeout time.Duration `json:"idleTimeout,omitempty,format:units" yaml:"idleTimeout,omitempty"`
+	IdleTimeout time.Duration `env:"IDLE_TIMEOUT" json:"idleTimeout,omitempty,format:units" yaml:"idleTimeout,omitempty"`
 
 	// Lifetime controls the maximum length of time that a session is valid for
 	// before it expires. The lifetime is an 'absolute expiry' which is set when
 	// the session is first created and does not change. The default value is 24
 	// hours.
-	Lifetime time.Duration `json:"lifetime,omitempty,format:units" yaml:"lifetime,omitempty"`
+	Lifetime time.Duration `env:"LIFETIME" json:"lifetime,omitempty,format:units" yaml:"lifetime,omitempty"`
 
 	// HashTokenInStore controls to store the session token or a hashed version in the store.
-	HashTokenInStore bool `json:"hashTokenInStore,omitempty" yaml:"hashTokenInStore,omitempty"`
+	HashTokenInStore bool `env:"HASH_TOKEN_IN_STORE" json:"hashTokenInStore,omitempty" yaml:"hashTokenInStore,omitempty"`
 
 	// Cookie contains the configuration settings for session cookies.
-	Cookie Cookie `json:"cookie,omitempty" yaml:"cookie,omitempty"`
+	Cookie Cookie `envPrefix:"COOKIE_" json:"cookie,omitempty" yaml:"cookie,omitempty"`
 }
 
 func (c *Config) SetDefaults() {
