@@ -93,9 +93,11 @@ func (r *Router[T]) Pre(middlewares ...*hook.Handler[T]) {
 	}
 }
 
-// BuildMux constructs a new mux [http.Handler] instance from the current router configurations.
-func (r *Router[T]) BuildMux() (http.Handler, error) {
-	mux := http.NewServeMux()
+// Build constructs a new [http.Handler] instance from the current router configurations.
+func (r *Router[T]) Build(mux *http.ServeMux) (http.Handler, error) {
+	if mux == nil {
+		mux = http.NewServeMux()
+	}
 
 	if err := r.build(mux, r.RouterGroup, nil); err != nil {
 		return nil, err

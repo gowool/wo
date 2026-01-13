@@ -62,7 +62,7 @@ func TestRouterPatterns(t *testing.T) {
 	router.POST("/posts", func(e *Event) error { return nil })
 
 	// Build mux to populate patterns (patterns are populated during BuildMux())
-	_, err := router.BuildMux()
+	_, err := router.Build(nil)
 	require.NoError(t, err)
 
 	// Collect patterns
@@ -102,7 +102,7 @@ func TestRouterPreFunc(t *testing.T) {
 	})
 
 	// Build mux and test middleware execution
-	mux, err := router.BuildMux()
+	mux, err := router.Build(nil)
 	require.NoError(t, err)
 
 	req := httptest.NewRequest("GET", "/test", nil)
@@ -147,7 +147,7 @@ func TestRouterPreFuncMultiple(t *testing.T) {
 	})
 
 	// Build mux and test middleware execution
-	mux, err := router.BuildMux()
+	mux, err := router.Build(nil)
 	require.NoError(t, err)
 
 	req := httptest.NewRequest("GET", "/test", nil)
@@ -189,7 +189,7 @@ func TestRouterPre(t *testing.T) {
 	})
 
 	// Build mux and test middleware execution
-	mux, err := router.BuildMux()
+	mux, err := router.Build(nil)
 	require.NoError(t, err)
 
 	req := httptest.NewRequest("GET", "/test", nil)
@@ -229,7 +229,7 @@ func TestRouterPreMultiple(t *testing.T) {
 	})
 
 	// Build mux and test middleware execution
-	mux, err := router.BuildMux()
+	mux, err := router.Build(nil)
 	require.NoError(t, err)
 
 	req := httptest.NewRequest("GET", "/test", nil)
@@ -266,7 +266,7 @@ func TestRouterBuildMux(t *testing.T) {
 	})
 
 	// Build the mux handler
-	mux, err := router.BuildMux()
+	mux, err := router.Build(nil)
 	require.NoError(t, err)
 	require.NotNil(t, mux)
 
@@ -311,7 +311,7 @@ func TestRouterBuildMuxWithPreMiddleware(t *testing.T) {
 		return e.String(http.StatusOK, "test response")
 	})
 
-	mux, err := router.BuildMux()
+	mux, err := router.Build(nil)
 	require.NoError(t, err)
 
 	req := httptest.NewRequest("GET", "/test", nil)
@@ -346,7 +346,7 @@ func TestRouterBuildMuxWithErrorHandling(t *testing.T) {
 		return e.String(http.StatusOK, "should not reach here")
 	})
 
-	mux, err := router.BuildMux()
+	mux, err := router.Build(nil)
 	require.NoError(t, err)
 
 	req := httptest.NewRequest("GET", "/test", nil)
@@ -377,7 +377,7 @@ func TestRouterBuildMuxWithCleanupFunction(t *testing.T) {
 		return e.String(http.StatusOK, "test response")
 	})
 
-	mux, err := router.BuildMux()
+	mux, err := router.Build(nil)
 	require.NoError(t, err)
 
 	req := httptest.NewRequest("GET", "/test", nil)
@@ -404,7 +404,7 @@ func TestRouterBuildMuxWithResponsePool(t *testing.T) {
 		return e.String(http.StatusOK, "test response")
 	})
 
-	mux, err := router.BuildMux()
+	mux, err := router.Build(nil)
 	require.NoError(t, err)
 
 	// Test multiple concurrent requests to verify response pooling
@@ -438,7 +438,7 @@ func TestRouterBuildInternalError(t *testing.T) {
 	router.children = append(router.children, "invalid")
 
 	// This should return an error when trying to build
-	_, err := router.BuildMux()
+	_, err := router.Build(nil)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "invalid RouterGroup item type")
 }
@@ -464,7 +464,7 @@ func TestRouterNestedGroups(t *testing.T) {
 		return e.String(http.StatusOK, "posts list")
 	})
 
-	mux, err := router.BuildMux()
+	mux, err := router.Build(nil)
 	require.NoError(t, err)
 
 	// Test the route
@@ -502,7 +502,7 @@ func TestRouterMethodSpecificRoutes(t *testing.T) {
 		return e.String(http.StatusNoContent, "DELETE response")
 	})
 
-	mux, err := router.BuildMux()
+	mux, err := router.Build(nil)
 	require.NoError(t, err)
 
 	tests := []struct {
@@ -540,7 +540,7 @@ func TestRouterNilEventFactory(t *testing.T) {
 	router.GET("/test", func(e *Event) error { return nil })
 
 	// BuildMux doesn't panic immediately, but the resulting handler will panic when called
-	mux, err := router.BuildMux()
+	mux, err := router.Build(http.NewServeMux())
 	assert.NoError(t, err)
 	assert.NotNil(t, mux)
 
@@ -584,7 +584,7 @@ func TestRouterEventFactoryContext(t *testing.T) {
 		return e.String(http.StatusOK, "test")
 	})
 
-	mux, err := router.BuildMux()
+	mux, err := router.Build(nil)
 	require.NoError(t, err)
 
 	req := httptest.NewRequest("GET", "/test", nil)
@@ -626,7 +626,7 @@ func TestRouterPatternGeneration(t *testing.T) {
 	users.POST("", func(e *Event) error { return nil })
 
 	// Build mux to populate patterns
-	_, err := router.BuildMux()
+	_, err := router.Build(nil)
 	require.NoError(t, err)
 
 	// Collect patterns
