@@ -29,11 +29,10 @@ func createTestContext(t testing.TB) (*woContext[*wo.Event], *wo.Event) {
 
 	// Create a test response
 	resp := httptest.NewRecorder()
-	woResp := &wo.Response{ResponseWriter: resp}
 
 	// Create Event
 	event := &wo.Event{}
-	event.Reset(woResp, req)
+	event.Reset(resp, req)
 
 	// Create a test operation
 	op := &huma.Operation{
@@ -337,7 +336,7 @@ func TestWoContext_SetStatus(t *testing.T) {
 	ctx.SetStatus(http.StatusNotFound)
 
 	// The status should be set on the response
-	assert.Equal(t, http.StatusNotFound, ctx.e.Response().Status)
+	assert.Equal(t, http.StatusNotFound, wo.MustUnwrapResponse(ctx.e.Response()).Status)
 }
 
 func TestWoContext_Status(t *testing.T) {
@@ -409,7 +408,7 @@ func TestWoContext_BodyWriter(t *testing.T) {
 	assert.Equal(t, len(testData), n)
 
 	// Verify the data was written
-	response := ctx.e.Response().ResponseWriter.(*httptest.ResponseRecorder)
+	response := wo.MustUnwrapResponse(ctx.e.Response()).ResponseWriter.(*httptest.ResponseRecorder)
 	assert.Equal(t, testData, response.Body.Bytes())
 }
 

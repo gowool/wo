@@ -126,7 +126,7 @@ func (c *woContext[R]) SetStatus(code int) {
 
 // Status returns the HTTP status code for the response.
 func (c *woContext[R]) Status() int {
-	return c.e.Response().Status
+	return wo.MustUnwrapResponse(c.e.Response()).Status
 }
 
 // SetHeader sets the given header to the given value, overwriting any
