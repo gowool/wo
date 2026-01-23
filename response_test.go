@@ -615,3 +615,55 @@ func TestUnwrapResponse(t *testing.T) {
 		assert.Equal(t, "ResponseWriter does not implement 'Unwrap() http.ResponseWriter' interface", err.Error())
 	})
 }
+
+func TestMustUnwrapResponse(t *testing.T) {
+	t.Run("unwraps Response directly", func(t *testing.T) {
+		mockRW := httptest.NewRecorder()
+		resp := NewResponse(mockRW)
+
+		unwrapped := MustUnwrapResponse(resp)
+
+		assert.Same(t, resp, unwrapped)
+	})
+
+	t.Run("unwraps through RWUnwrapper", func(t *testing.T) {
+		mockRW := httptest.NewRecorder()
+		resp := NewResponse(mockRW)
+		wrapped := &mockUnwrapper{
+			ResponseWriter: httptest.NewRecorder(),
+			inner:          resp,
+		}
+
+		unwrapped := MustUnwrapResponse(wrapped)
+
+		assert.Same(t, resp, unwrapped)
+	})
+
+	t.Run("panics when ResponseWriter doesn't implement Unwrap", func(t *testing.T) {
+		mockRW := httptest.NewRecorder()
+
+		assert.Panics(t, func() {
+			MustUnwrapResponse(mockRW)
+		})
+	})
+
+	t.Run("panics when unwrapping chain ends without finding Response", func(t *testing.T) {
+		innerRW := httptest.NewRecorder()
+		outerRW := &mockUnwrapper{
+			ResponseWriter: httptest.NewRecorder(),
+			inner:          innerRW,
+		}
+
+		assert.Panics(t, func() {
+			MustUnwrapResponse(outerRW)
+		})
+	})
+
+	t.Run("panics when ResponseWriter is nil", func(t *testing.T) {
+		var rw http.ResponseWriter = nil
+
+		assert.Panics(t, func() {
+			MustUnwrapResponse(rw)
+		})
+	})
+}

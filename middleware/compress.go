@@ -149,7 +149,7 @@ type gzipResponseWriter struct {
 }
 
 func (w *gzipResponseWriter) WriteHeader(code int) {
-	w.Header().Del(wo.HeaderContentLength) // Issue echo#444
+	w.Header().Del(wo.HeaderContentLength)
 
 	w.wroteHeader = true
 
