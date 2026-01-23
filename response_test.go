@@ -528,3 +528,90 @@ func TestResponse_BufferingWorkflow(t *testing.T) {
 	assert.Empty(t, mockRW.Body.Bytes())
 	assert.Equal(t, int64(0), resp.Size) // Size not updated when buffering
 }
+
+func TestUnwrapResponse(t *testing.T) {
+	t.Run("unwraps Response directly", func(t *testing.T) {
+		mockRW := httptest.NewRecorder()
+		resp := NewResponse(mockRW)
+
+		unwrapped, err := UnwrapResponse(resp)
+
+		require.NoError(t, err)
+		assert.Same(t, resp, unwrapped)
+	})
+
+	t.Run("unwraps through single RWUnwrapper", func(t *testing.T) {
+		mockRW := httptest.NewRecorder()
+		resp := NewResponse(mockRW)
+		wrapped := &mockUnwrapper{
+			ResponseWriter: httptest.NewRecorder(),
+			inner:          resp,
+		}
+
+		unwrapped, err := UnwrapResponse(wrapped)
+
+		require.NoError(t, err)
+		assert.Same(t, resp, unwrapped)
+	})
+
+	t.Run("unwraps through multiple layers of RWUnwrapper", func(t *testing.T) {
+		mockRW := httptest.NewRecorder()
+		resp := NewResponse(mockRW)
+
+		layer3 := &mockUnwrapper{
+			ResponseWriter: httptest.NewRecorder(),
+			inner:          resp,
+		}
+		layer2 := &mockUnwrapper{
+			ResponseWriter: httptest.NewRecorder(),
+			inner:          layer3,
+		}
+		layer1 := &mockUnwrapper{
+			ResponseWriter: httptest.NewRecorder(),
+			inner:          layer2,
+		}
+
+		unwrapped, err := UnwrapResponse(layer1)
+
+		require.NoError(t, err)
+		assert.Same(t, resp, unwrapped)
+	})
+
+	t.Run("returns error when ResponseWriter doesn't implement Unwrap", func(t *testing.T) {
+		mockRW := httptest.NewRecorder()
+
+		unwrapped, err := UnwrapResponse(mockRW)
+
+		require.Error(t, err)
+		assert.Nil(t, unwrapped)
+		assert.Equal(t, "ResponseWriter does not implement 'Unwrap() http.ResponseWriter' interface", err.Error())
+	})
+
+	t.Run("returns error when unwrapping chain ends without finding Response", func(t *testing.T) {
+		innerRW := httptest.NewRecorder()
+		middleRW := &mockUnwrapper{
+			ResponseWriter: httptest.NewRecorder(),
+			inner:          innerRW,
+		}
+		outerRW := &mockUnwrapper{
+			ResponseWriter: httptest.NewRecorder(),
+			inner:          middleRW,
+		}
+
+		unwrapped, err := UnwrapResponse(outerRW)
+
+		require.Error(t, err)
+		assert.Nil(t, unwrapped)
+		assert.Equal(t, "ResponseWriter does not implement 'Unwrap() http.ResponseWriter' interface", err.Error())
+	})
+
+	t.Run("handles nil ResponseWriter", func(t *testing.T) {
+		var rw http.ResponseWriter = nil
+
+		unwrapped, err := UnwrapResponse(rw)
+
+		require.Error(t, err)
+		assert.Nil(t, unwrapped)
+		assert.Equal(t, "ResponseWriter does not implement 'Unwrap() http.ResponseWriter' interface", err.Error())
+	})
+}
