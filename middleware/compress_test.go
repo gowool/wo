@@ -58,7 +58,9 @@ type testFlushEvent struct {
 
 func (e *testFlushEvent) Next() error {
 	if len(e.data) > 0 {
-		e.Response().Write(e.data)
+		if _, err := e.Response().Write(e.data); err != nil {
+			return err
+		}
 	}
 	if flusher, ok := e.Response().(http.Flusher); ok {
 		flusher.Flush()
