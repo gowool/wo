@@ -42,8 +42,8 @@ type Resolver interface {
 	SetRequest(r *http.Request)
 	Request() *http.Request
 
-	SetResponse(w *Response)
-	Response() *Response
+	SetResponse(w http.ResponseWriter)
+	Response() http.ResponseWriter
 }
 
 type EventCleanupFunc func()
@@ -52,7 +52,7 @@ type EventCleanupFunc func()
 // based on the provided request handler ServeHTTP data.
 //
 // Optionally return a cleanup function that will be invoked right after the route execution.
-type EventFactoryFunc[T Resolver] func(w *Response, r *http.Request) (T, EventCleanupFunc)
+type EventFactoryFunc[T Resolver] func(w http.ResponseWriter, r *http.Request) (T, EventCleanupFunc)
 
 type Router[T Resolver] struct {
 	*RouterGroup[T]

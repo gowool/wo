@@ -21,7 +21,7 @@ func newCORSTestEvent(method, url string, headers map[string]string) *wo.Event {
 	rec := httptest.NewRecorder()
 
 	e := new(wo.Event)
-	e.Reset(wo.NewResponse(rec), req)
+	e.Reset(rec, req)
 
 	return e
 }
@@ -593,7 +593,7 @@ func TestCORS_PreflightRequests(t *testing.T) {
 			err := middleware(event)
 
 			assert.NoError(t, err)
-			assert.Equal(t, tt.expectedStatus, event.Response().Status, "Expected status code")
+			assert.Equal(t, tt.expectedStatus, wo.MustUnwrapResponse(event.Response()).Status, "Expected status code")
 
 			responseHeaders := event.Response().Header()
 			for header, expectedValue := range tt.expectedHeaders {
@@ -731,7 +731,7 @@ func TestCORS_NoOriginHeader(t *testing.T) {
 
 			assert.NoError(t, err)
 			assert.Equal(t, tt.expectNext, event.nextCalled, "Next() should be called as expected")
-			assert.Equal(t, tt.expectedStatus, event.Response().Status, "Expected status code")
+			assert.Equal(t, tt.expectedStatus, wo.MustUnwrapResponse(event.Response()).Status, "Expected status code")
 
 			// No CORS headers should be set without Origin header
 			assert.Empty(t, event.Response().Header().Get(wo.HeaderAccessControlAllowOrigin))
@@ -1094,5 +1094,5 @@ func TestCORS_DefaultBehaviorIntegration(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "*", event.Response().Header().Get(wo.HeaderAccessControlAllowOrigin))
 	assert.Equal(t, "GET,HEAD,PUT,PATCH,POST,DELETE", event.Response().Header().Get(wo.HeaderAccessControlAllowMethods))
-	assert.Equal(t, http.StatusNoContent, event.Response().Status)
+	assert.Equal(t, http.StatusNoContent, wo.MustUnwrapResponse(event.Response()).Status)
 }

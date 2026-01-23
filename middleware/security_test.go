@@ -15,7 +15,7 @@ func newSecurityTestEvent() *wo.Event {
 	rec := httptest.NewRecorder()
 
 	e := new(wo.Event)
-	e.Reset(wo.NewResponse(rec), req)
+	e.Reset(rec, req)
 
 	return e
 }
@@ -26,7 +26,7 @@ func newSecurityTestEventWithHTTPS() *wo.Event {
 	rec := httptest.NewRecorder()
 
 	e := new(wo.Event)
-	e.Reset(wo.NewResponse(rec), req)
+	e.Reset(rec, req)
 
 	return e
 }
@@ -40,7 +40,7 @@ func newSecurityTestEventWithHeaders(headers map[string]string) *wo.Event {
 	rec := httptest.NewRecorder()
 
 	e := new(wo.Event)
-	e.Reset(wo.NewResponse(rec), req)
+	e.Reset(rec, req)
 
 	return e
 }
@@ -476,7 +476,7 @@ func TestSecurity_Skipper(t *testing.T) {
 			req := httptest.NewRequest("GET", "http://example.com"+tt.path, nil)
 			rec := httptest.NewRecorder()
 			event := new(wo.Event)
-			event.Reset(wo.NewResponse(rec), req)
+			event.Reset(rec, req)
 
 			middleware := Security[*wo.Event](tt.config, tt.skippers...)
 			err := middleware(event)
@@ -598,7 +598,7 @@ func TestSecurity_EdgeCases(t *testing.T) {
 				req := httptest.NewRequest("GET", "/", nil)
 				rec := httptest.NewRecorder()
 				e := new(wo.Event)
-				e.Reset(wo.NewResponse(rec), req)
+				e.Reset(rec, req)
 				return e
 			},
 		},
@@ -609,7 +609,7 @@ func TestSecurity_EdgeCases(t *testing.T) {
 				req := httptest.NewRequest("GET", "/", nil)
 				rec := httptest.NewRecorder()
 				e := new(wo.Event)
-				e.Reset(wo.NewResponse(rec), req)
+				e.Reset(rec, req)
 				return e
 			},
 		},
@@ -622,7 +622,7 @@ func TestSecurity_EdgeCases(t *testing.T) {
 				req.Header.Del("X-Forwarded-Proto")
 				rec := httptest.NewRecorder()
 				e := new(wo.Event)
-				e.Reset(wo.NewResponse(rec), req)
+				e.Reset(rec, req)
 				return e
 			},
 		},
@@ -634,7 +634,7 @@ func TestSecurity_EdgeCases(t *testing.T) {
 				req.Header.Set("X-Forwarded-Proto", "http")
 				rec := httptest.NewRecorder()
 				e := new(wo.Event)
-				e.Reset(wo.NewResponse(rec), req)
+				e.Reset(rec, req)
 				return e
 			},
 		},

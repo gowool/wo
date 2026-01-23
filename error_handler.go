@@ -60,7 +60,7 @@ func ErrorHandler[T Resolver](render func(T, *HTTPError), mapper func(error) *HT
 
 	return func(e T, err error) {
 		req := e.Request()
-		res := e.Response()
+		res := MustUnwrapResponse(e.Response())
 
 		if res.Written {
 			logger.Warn("error handler: called after response written", "error", err)
@@ -102,12 +102,10 @@ func ErrorHandler[T Resolver](render func(T, *HTTPError), mapper func(error) *HT
 		if render != nil {
 			render(e, httpErr)
 
-			if e.Response().Written {
+			if res = MustUnwrapResponse(e.Response()); res.Written {
 				return
 			}
-
 			req = e.Request()
-			res = e.Response()
 		}
 
 		contentType := NegotiateFormat(

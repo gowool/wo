@@ -12,15 +12,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func eventFactory(w http.ResponseWriter, r *http.Request) (*Event, EventCleanupFunc) {
+	event := new(Event)
+	event.Reset(w, r)
+	return event, nil
+}
+
+func errorHandler(e *Event, err error) {}
+
 // TestRouterCreation tests the creation and initialization of Router
 func TestRouterCreation(t *testing.T) {
-	eventFactory := func(w *Response, r *http.Request) (*Event, EventCleanupFunc) {
-		event := Event{}
-		event.Reset(w, r)
-		return &event, nil
-	}
-	errorHandler := func(e *Event, err error) {}
-
 	router := New[*Event](eventFactory, errorHandler)
 
 	require.NotNil(t, router)
@@ -41,13 +42,6 @@ func TestRouterCreation(t *testing.T) {
 
 // TestRouterPatterns tests the Patterns method
 func TestRouterPatterns(t *testing.T) {
-	eventFactory := func(w *Response, r *http.Request) (*Event, EventCleanupFunc) {
-		event := Event{}
-		event.Reset(w, r)
-		return &event, nil
-	}
-	errorHandler := func(e *Event, err error) {}
-
 	router := New[*Event](eventFactory, errorHandler)
 
 	// Initially empty patterns
@@ -79,13 +73,6 @@ func TestRouterPatterns(t *testing.T) {
 
 // TestRouterPreFunc tests binding anonymous middleware functions to preHook
 func TestRouterPreFunc(t *testing.T) {
-	eventFactory := func(w *Response, r *http.Request) (*Event, EventCleanupFunc) {
-		event := Event{}
-		event.Reset(w, r)
-		return &event, nil
-	}
-	errorHandler := func(e *Event, err error) {}
-
 	router := New[*Event](eventFactory, errorHandler)
 
 	preMiddlewareExecuted := false
@@ -115,13 +102,6 @@ func TestRouterPreFunc(t *testing.T) {
 
 // TestRouterPreFuncMultiple tests binding multiple middleware functions
 func TestRouterPreFuncMultiple(t *testing.T) {
-	eventFactory := func(w *Response, r *http.Request) (*Event, EventCleanupFunc) {
-		event := Event{}
-		event.Reset(w, r)
-		return &event, nil
-	}
-	errorHandler := func(e *Event, err error) {}
-
 	router := New[*Event](eventFactory, errorHandler)
 
 	callOrder := []int{}
@@ -165,13 +145,6 @@ func TestRouterPreFuncMultiple(t *testing.T) {
 
 // TestRouterPre tests binding named middleware handlers to preHook
 func TestRouterPre(t *testing.T) {
-	eventFactory := func(w *Response, r *http.Request) (*Event, EventCleanupFunc) {
-		event := Event{}
-		event.Reset(w, r)
-		return &event, nil
-	}
-	errorHandler := func(e *Event, err error) {}
-
 	router := New[*Event](eventFactory, errorHandler)
 
 	preMiddlewareExecuted := false
@@ -202,13 +175,6 @@ func TestRouterPre(t *testing.T) {
 
 // TestRouterPreMultiple tests binding multiple middleware handlers
 func TestRouterPreMultiple(t *testing.T) {
-	eventFactory := func(w *Response, r *http.Request) (*Event, EventCleanupFunc) {
-		event := Event{}
-		event.Reset(w, r)
-		return &event, nil
-	}
-	errorHandler := func(e *Event, err error) {}
-
 	router := New[*Event](eventFactory, errorHandler)
 
 	executedCount := 0
@@ -245,16 +211,6 @@ func TestRouterPreMultiple(t *testing.T) {
 
 // TestRouterBuildMux tests building an HTTP handler from router
 func TestRouterBuildMux(t *testing.T) {
-	eventFactory := func(w *Response, r *http.Request) (*Event, EventCleanupFunc) {
-		event := Event{}
-		event.Reset(w, r)
-		return &event, nil
-	}
-
-	errorHandler := func(e *Event, err error) {
-		// Simple error handler for testing
-	}
-
 	router := New[*Event](eventFactory, errorHandler)
 
 	// Add some routes
@@ -290,13 +246,6 @@ func TestRouterBuildMux(t *testing.T) {
 // TestRouterBuildMuxWithPreMiddleware tests that pre-middleware are executed
 func TestRouterBuildMuxWithPreMiddleware(t *testing.T) {
 	preExecuted := false
-	eventFactory := func(w *Response, r *http.Request) (*Event, EventCleanupFunc) {
-		event := Event{}
-		event.Reset(w, r)
-		return &event, nil
-	}
-
-	errorHandler := func(e *Event, err error) {}
 
 	router := New[*Event](eventFactory, errorHandler)
 
@@ -324,12 +273,6 @@ func TestRouterBuildMuxWithPreMiddleware(t *testing.T) {
 
 // TestRouterBuildMuxWithErrorHandling tests error handling in built mux
 func TestRouterBuildMuxWithErrorHandling(t *testing.T) {
-	eventFactory := func(w *Response, r *http.Request) (*Event, EventCleanupFunc) {
-		event := Event{}
-		event.Reset(w, r)
-		return &event, nil
-	}
-
 	var handledError error
 	errorHandler := func(e *Event, err error) {
 		handledError = err
@@ -360,7 +303,7 @@ func TestRouterBuildMuxWithErrorHandling(t *testing.T) {
 // TestRouterBuildMuxWithCleanupFunction tests cleanup function execution
 func TestRouterBuildMuxWithCleanupFunction(t *testing.T) {
 	cleanupCalled := false
-	eventFactory := func(w *Response, r *http.Request) (*Event, EventCleanupFunc) {
+	eventFactory := func(w http.ResponseWriter, r *http.Request) (*Event, EventCleanupFunc) {
 		event := Event{}
 		event.Reset(w, r)
 		cleanupFunc := func() {
@@ -368,8 +311,6 @@ func TestRouterBuildMuxWithCleanupFunction(t *testing.T) {
 		}
 		return &event, cleanupFunc
 	}
-
-	errorHandler := func(e *Event, err error) {}
 
 	router := New[*Event](eventFactory, errorHandler)
 
@@ -390,14 +331,6 @@ func TestRouterBuildMuxWithCleanupFunction(t *testing.T) {
 
 // TestRouterBuildMuxWithResponsePool tests response pool functionality
 func TestRouterBuildMuxWithResponsePool(t *testing.T) {
-	eventFactory := func(w *Response, r *http.Request) (*Event, EventCleanupFunc) {
-		event := Event{}
-		event.Reset(w, r)
-		return &event, nil
-	}
-
-	errorHandler := func(e *Event, err error) {}
-
 	router := New[*Event](eventFactory, errorHandler)
 
 	router.GET("/test", func(e *Event) error {
@@ -424,14 +357,6 @@ func TestRouterBuildMuxWithResponsePool(t *testing.T) {
 
 // TestRouterBuildInternalError tests build method with invalid child type
 func TestRouterBuildInternalError(t *testing.T) {
-	eventFactory := func(w *Response, r *http.Request) (*Event, EventCleanupFunc) {
-		event := Event{}
-		event.Reset(w, r)
-		return &event, nil
-	}
-
-	errorHandler := func(e *Event, err error) {}
-
 	router := New[*Event](eventFactory, errorHandler)
 
 	// Manually add an invalid child type to test error handling
@@ -445,14 +370,6 @@ func TestRouterBuildInternalError(t *testing.T) {
 
 // TestRouterNestedGroups tests nested group functionality
 func TestRouterNestedGroups(t *testing.T) {
-	eventFactory := func(w *Response, r *http.Request) (*Event, EventCleanupFunc) {
-		event := Event{}
-		event.Reset(w, r)
-		return &event, nil
-	}
-
-	errorHandler := func(e *Event, err error) {}
-
 	router := New[*Event](eventFactory, errorHandler)
 
 	// Add nested groups
@@ -478,14 +395,6 @@ func TestRouterNestedGroups(t *testing.T) {
 
 // TestRouterMethodSpecificRoutes tests that HTTP method specific routes work correctly
 func TestRouterMethodSpecificRoutes(t *testing.T) {
-	eventFactory := func(w *Response, r *http.Request) (*Event, EventCleanupFunc) {
-		event := Event{}
-		event.Reset(w, r)
-		return &event, nil
-	}
-
-	errorHandler := func(e *Event, err error) {}
-
 	router := New[*Event](eventFactory, errorHandler)
 
 	// Add routes with different methods
@@ -554,12 +463,6 @@ func TestRouterNilEventFactory(t *testing.T) {
 
 // TestRouterNilErrorHandler tests behavior with nil error handler
 func TestRouterNilErrorHandler(t *testing.T) {
-	eventFactory := func(w *Response, r *http.Request) (*Event, EventCleanupFunc) {
-		event := Event{}
-		event.Reset(w, r)
-		return &event, nil
-	}
-
 	// Should not panic with nil error handler
 	router := New(eventFactory, nil)
 	assert.NotNil(t, router)
@@ -568,14 +471,6 @@ func TestRouterNilErrorHandler(t *testing.T) {
 
 // TestRouterEventFactoryContext tests that event context is properly set
 func TestRouterEventFactoryContext(t *testing.T) {
-	eventFactory := func(w *Response, r *http.Request) (*Event, EventCleanupFunc) {
-		event := Event{}
-		event.Reset(w, r)
-		return &event, nil
-	}
-
-	errorHandler := func(e *Event, err error) {}
-
 	router := New[*Event](eventFactory, errorHandler)
 
 	var capturedEvent *Event
@@ -605,14 +500,6 @@ func TestRouterEventFactoryContext(t *testing.T) {
 
 // TestRouterPatternGeneration tests pattern generation for complex routes
 func TestRouterPatternGeneration(t *testing.T) {
-	eventFactory := func(w *Response, r *http.Request) (*Event, EventCleanupFunc) {
-		event := Event{}
-		event.Reset(w, r)
-		return &event, nil
-	}
-
-	errorHandler := func(e *Event, err error) {}
-
 	router := New[*Event](eventFactory, errorHandler)
 
 	// Create nested groups

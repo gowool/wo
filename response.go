@@ -182,3 +182,27 @@ func (r *Response) Reset(w http.ResponseWriter) {
 	r.Status = 0
 	r.Size = 0
 }
+
+// UnwrapResponse unwraps given ResponseWriter to return contexts original Response. rw has to implement
+// following method `Unwrap() http.ResponseWriter`
+func UnwrapResponse(rw http.ResponseWriter) (*Response, error) {
+	for {
+		switch t := rw.(type) {
+		case *Response:
+			return t, nil
+		case RWUnwrapper:
+			rw = t.Unwrap()
+			continue
+		default:
+			return nil, errors.New("ResponseWriter does not implement 'Unwrap() http.ResponseWriter' interface")
+		}
+	}
+}
+
+func MustUnwrapResponse(rw http.ResponseWriter) *Response {
+	r, err := UnwrapResponse(rw)
+	if err != nil {
+		panic(err)
+	}
+	return r
+}

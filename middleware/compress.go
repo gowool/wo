@@ -78,25 +78,31 @@ func Compress[T wo.Resolver](cfg CompressConfig, skippers ...Skipper[T]) func(T)
 	}
 
 	return func(e T) error {
-		if skip(e) || !strings.Contains(e.Request().Header.Get(wo.HeaderAcceptEncoding), gzipScheme) {
+		if skip(e) {
 			return e.Next()
 		}
 
 		res := e.Response()
 		res.Header().Add(wo.HeaderVary, wo.HeaderAcceptEncoding)
 
+		if !strings.Contains(e.Request().Header.Get(wo.HeaderAcceptEncoding), gzipScheme) {
+			return e.Next()
+		}
+
 		i := pool.Get()
 		w, ok := i.(*gzip.Writer)
 		if !ok {
 			return wo.ErrInternalServerError.WithInternal(i.(error))
 		}
-		rw := res.ResponseWriter
+		rw := res
 		w.Reset(rw)
 
 		buf := bpool.Get().(*bytes.Buffer)
 		buf.Reset()
 
 		grw := &gzipResponseWriter{Writer: w, ResponseWriter: rw, minLength: cfg.MinLength, buffer: buf}
+		e.SetResponse(grw)
+
 		defer func() {
 			// There are different reasons for cases when we have not yet written response to the client and now need to do so.
 			// a) handler response had only response code and no response body (ala 404 or redirects etc). Response code need to be written now.
@@ -111,11 +117,11 @@ func Compress[T wo.Resolver](cfg CompressConfig, skippers ...Skipper[T]) func(T)
 				// We have to reset response to it's pristine state when
 				// nothing is written to body or error is returned.
 				// See issue echo#424, echo#407.
-				res.ResponseWriter = rw
+				e.SetResponse(rw)
 				w.Reset(io.Discard)
 			} else if !grw.minLengthExceeded {
 				// Write uncompressed response
-				res.ResponseWriter = rw
+				e.SetResponse(rw)
 				if grw.wroteHeader {
 					grw.ResponseWriter.WriteHeader(grw.code)
 				}
@@ -126,8 +132,6 @@ func Compress[T wo.Resolver](cfg CompressConfig, skippers ...Skipper[T]) func(T)
 			bpool.Put(buf)
 			pool.Put(w)
 		}()
-
-		res.ResponseWriter = grw
 
 		return e.Next()
 	}

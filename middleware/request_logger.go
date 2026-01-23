@@ -25,7 +25,7 @@ func RequestLogger[T wo.Resolver](logger *slog.Logger, attrFunc func(e T, status
 
 		err := e.Next()
 
-		status := e.Response().Status
+		status := wo.MustUnwrapResponse(e.Response()).Status
 
 		attributes := attrFunc(e, status, err)
 

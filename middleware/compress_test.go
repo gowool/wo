@@ -20,7 +20,7 @@ func newCompressTestEventWithHeaders(headers map[string]string) *wo.Event {
 	rec := httptest.NewRecorder()
 
 	e := new(wo.Event)
-	e.Reset(wo.NewResponse(rec), req)
+	e.Reset(rec, req)
 
 	return e
 }
@@ -48,7 +48,7 @@ type testInterfaceEvent struct {
 }
 
 func (e *testInterfaceEvent) Next() error {
-	w := e.Response().ResponseWriter
+	w := e.Response()
 
 	// Test Unwrap interface
 	if unwrapper, ok := w.(interface{ Unwrap() http.ResponseWriter }); ok {

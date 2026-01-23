@@ -40,19 +40,18 @@ type TestHeaders struct {
 	UserAgent     string `header:"User-Agent"`
 }
 
-func newTestEventForEventTest() (*Event, *Response, *http.Request) {
+func newTestEventForEventTest() (*Event, http.ResponseWriter, *http.Request) {
 	// Create mock response writer
 	rec := httptest.NewRecorder()
-	resp := NewResponse(rec)
 
 	// Create test request
 	req := httptest.NewRequest("GET", "/test?foo=bar", nil)
 
 	// Create event
 	event := &Event{}
-	event.Reset(resp, req)
+	event.Reset(rec, req)
 
-	return event, resp, req
+	return event, event.Response(), req
 }
 
 func newTestEventWithBody(method, url string, body io.Reader, contentType string) (*Event, *Response, *http.Request) {
@@ -80,14 +79,13 @@ func TestEvent_Reset(t *testing.T) {
 	event.languages = []string{"en-US"}
 
 	// Reset with new response and request
-	newRec := httptest.NewRecorder()
-	newResp := NewResponse(newRec)
+	newResp := httptest.NewRecorder()
 	newReq := httptest.NewRequest("POST", "/new", nil)
 
 	event.Reset(newResp, newReq)
 
 	// Verify fields are reset
-	assert.Equal(t, newResp, event.Response())
+	assert.Equal(t, newResp, MustUnwrapResponse(event.Response()).ResponseWriter)
 	assert.Equal(t, newReq, event.Request())
 	assert.Empty(t, event.remoteIP)
 	assert.Nil(t, event.query)
@@ -847,13 +845,12 @@ func TestEvent_Stream(t *testing.T) {
 
 func TestEvent_NoContent(t *testing.T) {
 	event, resp, _ := newTestEventForEventTest()
-	event.SetResponse(resp)
 
 	err := event.NoContent(http.StatusNoContent)
 	require.NoError(t, err)
 
-	assert.Equal(t, http.StatusNoContent, resp.Status)
-	assert.Equal(t, 0, len(resp.Buffer()))
+	assert.Equal(t, http.StatusNoContent, MustUnwrapResponse(resp).Status)
+	assert.Equal(t, 0, len(MustUnwrapResponse(resp).Buffer()))
 }
 
 func TestEvent_Redirect(t *testing.T) {
@@ -869,7 +866,6 @@ func TestEvent_Redirect(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			event, resp, _ := newTestEventForEventTest()
-			event.SetResponse(resp)
 
 			err := event.Redirect(tt.status, "/new-url")
 
@@ -878,7 +874,7 @@ func TestEvent_Redirect(t *testing.T) {
 				assert.IsType(t, ErrInvalidRedirectCode, err)
 			} else {
 				require.NoError(t, err)
-				assert.Equal(t, tt.status, resp.Status)
+				assert.Equal(t, tt.status, MustUnwrapResponse(resp).Status)
 				assert.Equal(t, "/new-url", resp.Header().Get(HeaderLocation))
 			}
 		})

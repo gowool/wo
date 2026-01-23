@@ -17,7 +17,7 @@ import (
 // ErrorHandlerTestEvent is a simple implementation of hook.Resolver for testing
 type ErrorHandlerTestEvent struct {
 	req *http.Request
-	res *Response
+	res http.ResponseWriter
 	hook.Resolver
 }
 
@@ -29,16 +29,16 @@ func (e *ErrorHandlerTestEvent) Request() *http.Request {
 	return e.req
 }
 
-func (e *ErrorHandlerTestEvent) SetResponse(w *Response) {
+func (e *ErrorHandlerTestEvent) SetResponse(w http.ResponseWriter) {
 	e.res = w
 }
 
-func (e *ErrorHandlerTestEvent) Response() *Response {
+func (e *ErrorHandlerTestEvent) Response() http.ResponseWriter {
 	return e.res
 }
 
 // NewErrorHandlerTestEvent creates a new ErrorHandlerTestEvent for testing
-func NewErrorHandlerTestEvent(req *http.Request, res *Response) *ErrorHandlerTestEvent {
+func NewErrorHandlerTestEvent(req *http.Request, res http.ResponseWriter) *ErrorHandlerTestEvent {
 	e := &ErrorHandlerTestEvent{}
 	e.SetRequest(req)
 	e.SetResponse(res)

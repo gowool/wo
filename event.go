@@ -23,8 +23,9 @@ import (
 type Event struct {
 	hook.Event
 
-	response *Response
-	request  *http.Request
+	woResponse *Response
+	response   http.ResponseWriter
+	request    *http.Request
 
 	query     url.Values
 	start     time.Time
@@ -33,8 +34,13 @@ type Event struct {
 	languages []string
 }
 
-func (e *Event) Reset(w *Response, r *http.Request) {
-	e.response = w
+func (e *Event) Reset(w http.ResponseWriter, r *http.Request) {
+	if e.woResponse == nil {
+		e.woResponse = NewResponse(w)
+	} else {
+		e.woResponse.Reset(w)
+	}
+	e.response = e.woResponse
 	e.request = r
 	e.remoteIP = ""
 	e.query = nil
@@ -51,12 +57,17 @@ func (e *Event) Request() *http.Request {
 	return e.request
 }
 
-func (e *Event) SetResponse(w *Response) {
+func (e *Event) SetResponse(w http.ResponseWriter) {
+	_ = MustUnwrapResponse(w)
 	e.response = w
 }
 
-func (e *Event) Response() *Response {
+func (e *Event) Response() http.ResponseWriter {
 	return e.response
+}
+
+func (e *Event) woResp() *Response {
+	return MustUnwrapResponse(e.response)
 }
 
 func (e *Event) Context() context.Context {
@@ -92,17 +103,17 @@ func (e *Event) StartTime() time.Time {
 // Returns [http.ErrNotSupported] if e.response doesn't implement the [http.Flusher] interface
 // (all router package handlers receives a ResponseWriter that implements it unless explicitly replaced with a custom one).
 func (e *Event) Flush() error {
-	return e.response.FlushError()
+	return e.woResp().FlushError()
 }
 
 // Written reports whether the current response has already been written.
 func (e *Event) Written() bool {
-	return e.response.Written
+	return e.woResp().Written
 }
 
 // Status reports the status code of the current response.
 func (e *Event) Status() int {
-	return e.response.Status
+	return e.woResp().Status
 }
 
 func (e *Event) UserAgent() string {
@@ -393,16 +404,21 @@ func (e *Event) JSONPBlob(status int, callback string, b []byte) error {
 	return err
 }
 
-func (e *Event) xml(status int, i any, indent string) error {
+func (e *Event) xml(status int, i any, indent string) (err error) {
 	SetHeaderIfMissing(e.response, HeaderContentType, MIMEApplicationXMLCharsetUTF8)
 	e.response.WriteHeader(status)
 
 	enc := xml.NewEncoder(e.response)
 	enc.Indent("", indent)
-	if _, err := e.response.Write(convert.StringToBytes(xml.Header)); err != nil {
-		return err
+
+	defer func() { err = errors.Join(err, enc.Close()) }()
+
+	if _, err = e.response.Write(convert.StringToBytes(xml.Header)); err != nil {
+		return
 	}
-	return enc.Encode(i)
+
+	err = enc.Encode(i)
+	return
 }
 
 // XML writes an XML response.

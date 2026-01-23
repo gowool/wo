@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func newTestEvent(req *http.Request, res *Response) *Event {
+func newTestEvent(req *http.Request, res http.ResponseWriter) *Event {
 	event := &Event{}
 	event.Reset(res, req)
 	return event
@@ -23,7 +23,7 @@ func newTestEvent(req *http.Request, res *Response) *Event {
 type mockFileResolver struct {
 	hook.Resolver
 	request        *http.Request
-	response       *Response
+	response       http.ResponseWriter
 	fileFSCalled   bool
 	fileFSFsys     fs.FS
 	fileFSFilename string
@@ -42,11 +42,11 @@ func (m *mockFileResolver) Request() *http.Request {
 	return m.request
 }
 
-func (m *mockFileResolver) SetResponse(w *Response) {
+func (m *mockFileResolver) SetResponse(w http.ResponseWriter) {
 	m.response = w
 }
 
-func (m *mockFileResolver) Response() *Response {
+func (m *mockFileResolver) Response() http.ResponseWriter {
 	return m.response
 }
 
@@ -103,10 +103,9 @@ func TestWrapMiddleware(t *testing.T) {
 			// Create mock HTTP request and response
 			req := httptest.NewRequest("GET", "/", nil)
 			resp := httptest.NewRecorder()
-			response := NewResponse(resp)
 
 			// Create the Event with the request and response
-			event := newTestEvent(req, response)
+			event := newTestEvent(req, resp)
 
 			// Create the middleware function
 			middlewareFunc := WrapMiddleware[*Event](tt.middleware)
@@ -119,7 +118,7 @@ func TestWrapMiddleware(t *testing.T) {
 
 			// Verify that request and response were set
 			assert.Equal(t, req, event.Request())
-			assert.Equal(t, response, event.Response())
+			assert.Equal(t, resp, MustUnwrapResponse(event.Response()).Unwrap())
 			assert.Equal(t, tt.expectedStatus, resp.Code)
 
 			// Verify expected headers

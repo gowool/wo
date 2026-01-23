@@ -36,7 +36,7 @@ func newRLEvent() *wo.Event {
 	rec := httptest.NewRecorder()
 
 	e := new(wo.Event)
-	e.Reset(wo.NewResponse(rec), req)
+	e.Reset(rec, req)
 
 	return e
 }
@@ -48,7 +48,7 @@ func newRLEventWithPath(path string) *wo.Event {
 	rec := httptest.NewRecorder()
 
 	e := new(wo.Event)
-	e.Reset(wo.NewResponse(rec), req)
+	e.Reset(rec, req)
 
 	return e
 }
@@ -60,7 +60,7 @@ func newRLEventWithRemoteAddr(addr string) *wo.Event {
 	rec := httptest.NewRecorder()
 
 	e := new(wo.Event)
-	e.Reset(wo.NewResponse(rec), req)
+	e.Reset(rec, req)
 
 	return e
 }

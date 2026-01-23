@@ -65,8 +65,8 @@ type Resolver interface {
     hook.Resolver
     SetRequest(r *http.Request)
     Request() *http.Request
-    SetResponse(w *Response)
-    Response() *Response
+    SetResponse(w http.ResponseWriter)
+    Response() http.ResponseWriter
 }
 ```
 

@@ -58,7 +58,7 @@ func newSessionTestEvent(method, url string, headers map[string]string) *wo.Even
 	rec := httptest.NewRecorder()
 
 	e := new(wo.Event)
-	e.Reset(wo.NewResponse(rec), req)
+	e.Reset(rec, req)
 
 	return e
 }

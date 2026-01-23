@@ -37,7 +37,7 @@ func RequestLoggerAttrs[T Resolver](e T, status int, err error) []slog.Attr {
 		slog.String("user_agent", req.UserAgent()),
 		slog.Int("status", status),
 		slog.String("content_length", req.Header.Get(HeaderContentLength)),
-		slog.Int64("response_size", res.Size),
+		slog.Int64("response_size", MustUnwrapResponse(res).Size),
 	)
 
 	if id != "" {

@@ -21,7 +21,7 @@ func newTestEvent() *wo.Event {
 	rec := httptest.NewRecorder()
 
 	e := new(wo.Event)
-	e.Reset(wo.NewResponse(rec), req)
+	e.Reset(rec, req)
 
 	return e
 }
@@ -32,7 +32,7 @@ func newTestEventWithMethod(method, url string) *wo.Event {
 	rec := httptest.NewRecorder()
 
 	e := new(wo.Event)
-	e.Reset(wo.NewResponse(rec), req)
+	e.Reset(rec, req)
 
 	return e
 }
@@ -115,7 +115,7 @@ func TestRequestLoggerDefaultAttrFunc(t *testing.T) {
 
 	err := middleware(handler)
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, handler.Response().Status)
+	assert.Equal(t, http.StatusOK, wo.MustUnwrapResponse(handler.Response()).Status)
 
 	entries, parseErr := parseLogEntries(&logBuffer)
 	require.NoError(t, parseErr, "Should be able to parse log entries")
@@ -136,7 +136,7 @@ func TestRequestLoggerSkip(t *testing.T) {
 
 	err := middleware(handler)
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, handler.Response().Status)
+	assert.Equal(t, http.StatusOK, wo.MustUnwrapResponse(handler.Response()).Status)
 
 	entries, parseErr := parseLogEntries(&logBuffer)
 	require.NoError(t, parseErr, "Should be able to parse log entries")
@@ -160,7 +160,7 @@ func TestRequestLoggerSuccessStatus(t *testing.T) {
 
 	err := middleware(handler)
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, handler.Response().Status)
+	assert.Equal(t, http.StatusOK, wo.MustUnwrapResponse(handler.Response()).Status)
 
 	entries, parseErr := parseLogEntries(&logBuffer)
 	require.NoError(t, parseErr, "Should be able to parse log entries")
@@ -193,7 +193,7 @@ func TestRequestLoggerClientErrorStatus(t *testing.T) {
 
 	err := middleware(handler)
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusBadRequest, handler.Response().Status)
+	assert.Equal(t, http.StatusBadRequest, wo.MustUnwrapResponse(handler.Response()).Status)
 
 	entries, parseErr := parseLogEntries(&logBuffer)
 	require.NoError(t, parseErr, "Should be able to parse log entries")
@@ -219,7 +219,7 @@ func TestRequestLoggerServerErrorStatus(t *testing.T) {
 
 	err := middleware(handler)
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusInternalServerError, handler.Response().Status)
+	assert.Equal(t, http.StatusInternalServerError, wo.MustUnwrapResponse(handler.Response()).Status)
 
 	entries, parseErr := parseLogEntries(&logBuffer)
 	require.NoError(t, parseErr, "Should be able to parse log entries")
@@ -277,7 +277,7 @@ func TestRequestLoggerSuccessWithError(t *testing.T) {
 
 	err := middleware(handler)
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusAccepted, handler.Response().Status)
+	assert.Equal(t, http.StatusAccepted, wo.MustUnwrapResponse(handler.Response()).Status)
 
 	entries, parseErr := parseLogEntries(&logBuffer)
 	require.NoError(t, parseErr, "Should be able to parse log entries")
@@ -301,7 +301,7 @@ func TestRequestLoggerContextUpdate(t *testing.T) {
 
 	err := middleware(handler)
 	assert.NoError(t, err)
-	assert.Equal(t, http.StatusOK, handler.Response().Status)
+	assert.Equal(t, http.StatusOK, wo.MustUnwrapResponse(handler.Response()).Status)
 
 	// After middleware completes, context should be updated
 	logged = wo.RequestLogged(handler.Request().Context())
@@ -362,12 +362,12 @@ func TestRequestLoggerMultipleSkippers(t *testing.T) {
 			}
 			rec := httptest.NewRecorder()
 			e := new(wo.Event)
-			e.Reset(wo.NewResponse(rec), req)
+			e.Reset(rec, req)
 			handler := &testEvent{Event: e, status: http.StatusOK}
 
 			err := middleware(handler)
 			assert.NoError(t, err)
-			assert.Equal(t, http.StatusOK, handler.Response().Status)
+			assert.Equal(t, http.StatusOK, wo.MustUnwrapResponse(handler.Response()).Status)
 
 			entries, parseErr := parseLogEntries(&logBuffer)
 			require.NoError(t, parseErr, "Should be able to parse log entries")
@@ -390,7 +390,7 @@ func TestRequestLoggerEdgeCases(t *testing.T) {
 		req := httptest.NewRequest("GET", "/", nil)
 		rec := httptest.NewRecorder()
 		e := new(wo.Event)
-		e.Reset(wo.NewResponse(rec), req)
+		e.Reset(rec, req)
 		handler := &testEvent{Event: e, status: http.StatusOK}
 
 		err := middleware(handler)
@@ -433,7 +433,7 @@ func TestRequestLoggerEdgeCases(t *testing.T) {
 		req := httptest.NewRequest("GET", "http://example.com/test?param1=value1&param2=value2", nil)
 		rec := httptest.NewRecorder()
 		e := new(wo.Event)
-		e.Reset(wo.NewResponse(rec), req)
+		e.Reset(rec, req)
 		handler := &testEvent{Event: e, status: http.StatusOK}
 
 		err := middleware(handler)
@@ -495,7 +495,7 @@ func BenchmarkRequestLogger(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		logBuffer.Reset()
 		e := new(wo.Event)
-		e.Reset(wo.NewResponse(rec), req.Clone(req.Context()))
+		e.Reset(rec, req.Clone(req.Context()))
 		handler := &testEvent{Event: e, status: http.StatusOK}
 
 		_ = middleware(handler)
@@ -518,7 +518,7 @@ func BenchmarkRequestLoggerWithSkippers(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		logBuffer.Reset()
 		e := new(wo.Event)
-		e.Reset(wo.NewResponse(rec), req.Clone(req.Context()))
+		e.Reset(rec, req.Clone(req.Context()))
 		handler := &testEvent{Event: e, status: http.StatusOK}
 
 		_ = middleware(handler)
@@ -548,7 +548,7 @@ func BenchmarkRequestLoggerWithAttrFunc(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		logBuffer.Reset()
 		e := new(wo.Event)
-		e.Reset(wo.NewResponse(rec), req.Clone(req.Context()))
+		e.Reset(rec, req.Clone(req.Context()))
 		handler := &testEvent{Event: e, status: http.StatusOK}
 
 		_ = middleware(handler)

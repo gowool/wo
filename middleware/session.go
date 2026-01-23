@@ -29,7 +29,7 @@ func Session[T wo.Resolver](s *session.Session, logger ErrorLogger, skippers ...
 		}
 
 		e.SetRequest(r)
-		e.Response().Before(func() {
+		wo.MustUnwrapResponse(e.Response()).Before(func() {
 			ctx := e.Request().Context()
 
 			switch s.Status(ctx) {
