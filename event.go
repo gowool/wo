@@ -66,10 +66,6 @@ func (e *Event) Response() http.ResponseWriter {
 	return e.response
 }
 
-func (e *Event) woResp() *Response {
-	return MustUnwrapResponse(e.response)
-}
-
 func (e *Event) Context() context.Context {
 	return e.request.Context()
 }
@@ -96,24 +92,6 @@ func (e *Event) SetDebug(debug bool) {
 
 func (e *Event) StartTime() time.Time {
 	return e.start
-}
-
-// Flush flushes buffered data to the current response.
-//
-// Returns [http.ErrNotSupported] if e.response doesn't implement the [http.Flusher] interface
-// (all router package handlers receives a ResponseWriter that implements it unless explicitly replaced with a custom one).
-func (e *Event) Flush() error {
-	return e.woResp().FlushError()
-}
-
-// Written reports whether the current response has already been written.
-func (e *Event) Written() bool {
-	return e.woResp().Written
-}
-
-// Status reports the status code of the current response.
-func (e *Event) Status() int {
-	return e.woResp().Status
 }
 
 func (e *Event) UserAgent() string {

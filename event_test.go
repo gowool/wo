@@ -219,37 +219,6 @@ func TestEvent_SetDebug(t *testing.T) {
 	}
 }
 
-func TestEvent_Flush(t *testing.T) {
-	rec := httptest.NewRecorder()
-	resp := NewResponse(rec)
-
-	event, _, _ := newTestEventForEventTest()
-	event.SetResponse(resp)
-
-	// Test successful flush
-	err := event.Flush()
-	assert.NoError(t, err)
-}
-
-func TestEvent_WrittenAndStatus(t *testing.T) {
-	rec := httptest.NewRecorder()
-	resp := NewResponse(rec)
-
-	event, _, _ := newTestEventForEventTest()
-	event.SetResponse(resp)
-
-	// Initially not written
-	assert.False(t, event.Written())
-	assert.Equal(t, 0, event.Status())
-
-	// Write something
-	resp.WriteHeader(http.StatusOK)
-	_, _ = resp.Write([]byte("test"))
-
-	assert.True(t, event.Written())
-	assert.Equal(t, http.StatusOK, resp.Status)
-}
-
 func TestEvent_UserAgent(t *testing.T) {
 	tests := []struct {
 		name      string
